@@ -26,7 +26,7 @@ Derived values (never stored): product status, supplier due, invoice status (PAI
 ### Authentication
 - **AUTH-1** On first launch (no user row) the app shows Setup: shop name, username, password (min 8 characters), confirm password. It creates the only user, stores `shop_name`, and signs in. Setup is unreachable once a user exists.
 - **AUTH-2** Login takes username and password. Failure shows one generic message. After 5 consecutive failures the form is locked for 30 seconds (state kept in the main process).
-- **AUTH-3** A session lives in the main process. Logout clears it. Every IPC handler except setup-status, setup and login rejects calls without a session.
+- **AUTH-3** A session lives in the main process. Logout clears it. Every IPC handler except setup-status, setup, login and get-app-version rejects calls without a session.
 - **AUTH-4** Passwords are stored only as bcrypt hashes. No handler returns a hash or password.
 - **AUTH-5** Injection payloads in username or password never authenticate and never change data.
 
@@ -67,9 +67,18 @@ Derived values (never stored): product status, supplier due, invoice status (PAI
 - **REP-6** Export CSV for the tab and range shown. Escape commas, quotes and newlines properly.
 - **REP-7** Print report uses print CSS: hide nav and controls, black on white.
 
+### Release and versioning
+- **REL-1** Every pull request runs typecheck, lint and tests on Ubuntu and Windows through `.github/workflows/ci.yml`.
+- **REL-2** Every push to `main` that changes source files computes the next semantic version from the Conventional Commit messages since the last tag (`feat` minor, `fix` patch, breaking change major, anything else patch), creates the tag `vX.Y.Z`, and stamps that version into the build. The repository's `package.json` version stays `0.0.0`.
+- **REL-3** Each release builds an installer for Windows (NSIS `.exe`), Linux (`.AppImage`) and macOS (`.dmg`) and attaches them to a GitHub Release named after the tag, with generated release notes. File names follow `StockBill-<version>-<os>-<arch>.<ext>`.
+- **REL-4** The Setup and Login cards show `Version <x.y.z>` in monospace, read through the unauthenticated get-app-version handler from `app.getVersion()`. In development the value comes from `package.json`.
+- **REL-5** The README has a Download section that links to the Releases page and explains the unsigned-installer warning on Windows (More info, then Run anyway) and macOS (right-click, Open).
+- **REL-6** A repository test fails when any `npm run <script>` used in `.github/workflows/*.yml` is missing from `package.json`, or when `electron-builder.yml` is missing or lacks `asarUnpack`.
+- **REL-7** `docs/release-process.md` explains the pipeline with a Mermaid flowchart from pull request to published release.
+
 ## 3. Screens and visual language
 
-Navigation: Dashboard, Sales, Inventory, Suppliers, Reports. Right side of the bar shows the username and a Sign out button. Setup and Login are centered cards on the page background.
+Navigation: Dashboard, Sales, Inventory, Suppliers, Reports. Right side of the bar shows the username and a Sign out button. Setup and Login are centered cards on the page background; the bottom-right of each card shows the version text (REL-4) in the position the earlier mock used for "Version 1.0".
 
 Palette (sample exact values from `design/`; these are approximations):
 `--bg-center #ead9b0`, `--bg-edge #d3b98a` (radial page gradient), `--paper #f3e8cd`, `--paper-hi #fbf4e1`, `--ink #3b2a1a`, `--ink-soft #6b5a45`, `--rule #d9c49a`, `--red #8e2418`, `--green #2c5233`.
@@ -92,4 +101,4 @@ Rules:
 
 ## 5. Documentation deliverables
 
-Maintained under `docs/` and kept consistent with the migrations: `schema.sql`; `er-diagram.md` (Mermaid `erDiagram`); `use-case.md` (Mermaid diagram of the owner's use cases mapped to requirement IDs); `architecture.md` (Mermaid diagram of renderer, preload, IPC, main, domain, SQLite); `requirements-trace.md` (table mapping each requirement ID to its test file and screen).
+Maintained under `docs/` and kept consistent with the migrations: `schema.sql`; `er-diagram.md` (Mermaid `erDiagram`); `use-case.md` (Mermaid diagram of the owner's use cases mapped to requirement IDs); `architecture.md` (Mermaid diagram of renderer, preload, IPC, main, domain, SQLite); `requirements-trace.md` (table mapping each requirement ID to its test file and screen); `release-process.md` (REL-7).
