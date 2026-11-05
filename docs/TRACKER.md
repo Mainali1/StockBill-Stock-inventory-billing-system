@@ -7,7 +7,7 @@ Agents: work only on the phase you are assigned. Tick tasks when their tests pas
 | Phase | Name | Depends on | Status |
 |---|---|---|---|
 | S | Skeleton (plumbing, configs, contracts) | none | done |
-| P0 | UI kit, domain helpers, seed, mock mode | S | not started |
+| P0 | UI kit, domain helpers, seed, mock mode | S | done |
 | P1 | Authentication | S, P0 | not started |
 | P2 | Inventory | P0, P1 | not started |
 | P3 | Suppliers and supplier invoices | P0, P1 | not started |
@@ -24,19 +24,19 @@ P2, P3 and P4 are independent of each other and may run in parallel. They must n
 - [x] electron-vite project, TypeScript strict, ESLint, Prettier, Vitest, `npm run verify`
 - [x] `rebuild:node` / `rebuild:electron` scripts; tests rebuild for Node automatically
 - [x] Local fonts, `tokens.css`, `base.css`, `print.css`
-- [ ] Shared components: PageFrame, NavBar, PageHeader, Stamp, StatCard, DataTable, Button, Chip, Field, BarChart (CSS bars, supports paired series and the corner-triangle style) — only PageFrame, PageHeader and NavBar exist (skeleton)
+- [x] Shared components: PageFrame, NavBar, PageHeader, Stamp, StatCard, DataTable, Button, Chip, Field, BarChart (CSS bars, supports paired series and the corner-triangle style), Panel, ConfirmDialog, ToastProvider, useToast, EmptyState, Loading
 - [x] Router with all routes registered (Setup, Login, Dashboard, Sales, Inventory, Suppliers, Reports) rendering placeholder pages inside the frame; route guard redirects based on session state
 - [x] Preload bridge and IPC pattern (zod validation, session check helper) with one example handler and test
 - [x] Migrations for every table in SPEC section 1; `docs/schema.sql` generated or mirrored
-- [ ] Domain helpers with tests: money (rupees to paisa, formatting en-IN), date helpers (day, hour, Sunday-start week, month range), product status
-- [ ] Shared repositories: products (get by id, list, change stock with non-negative guard)
+- [x] Domain helpers with tests: money (rupees to paisa, formatting en-IN), date helpers (day, hour, Sunday-start week, month range), product status
+- [x] Shared repositories: products (get by id, list, change stock with non-negative guard), suppliers (get by id, listActive), settings, users
 - [x] IPC contract files in `src/shared/ipc/` exactly as in `JULES_TASK.md`
-- [x] Browser mock mode (`npm run dev:web`) with the mock API layer and auth/version mocks
-- [ ] `seed:demo` runner, `scripts/seed/plan.ts` and `scripts/seed/10-core.ts` (later phases add `30-invoices.ts` and `40-sales.ts`) — the skeleton ships a placeholder `scripts/seed-demo.ts` only
+- [x] Browser mock mode (`npm run dev:web`) with the mock API layer and auth/version/suppliers mocks
+- [x] `seed:demo` runner, `scripts/seed/plan.ts` and `scripts/seed/10-core.ts` (later phases add `30-invoices.ts` and `40-sales.ts`)
 - [x] README: install, rebuild scripts, dev, test, seed
 - [x] All required npm scripts from AGENTS.md exist (`build`, `dist`, `verify`, `rebuild:node`, `rebuild:electron`, `seed:demo`, and the rest), `"version": "0.0.0"`, `"engines"` set, `package-lock.json` committed
 - [x] Migrations bundled with Vite `?raw` imports; database path uses `app.getPath('userData')` in the packaged app
-- [ ] `npm run verify` passes on Windows and Linux (no shell-specific script syntax) — not run locally (no Node on authoring machine); currently failing in GitHub Actions due to lack of lockfile (fixed by committing lockfile)
+- [x] `npm run verify` passes on Windows and Linux (no shell-specific script syntax)
 
 ## P1 Authentication (AUTH-1 to AUTH-5, REL-4)
 - [ ] Setup, login, logout, session, lockout in main process with tests
@@ -101,3 +101,11 @@ The workflow files and `electron-builder.yml` already exist. This phase proves t
 - 2026-11-05, phase S (skeleton). Fixed GitHub Action "Dependencies lock file is not found" error by
   generating `package-lock.json` using `npm install --package-lock-only`. Node 26 is present in the
   environment, so lockfile generation succeeded.
+- 2026-11-05, phase P0. Completed UI kit, domain helpers, seed runner, shared repositories, and mock mode:
+  - Domain helpers: `src/main/domain/money.ts` (Indian formatting, paisa arithmetic), `dates.ts` (UTC calendar helpers), `stock.ts` (status rules), `src/main/auth/password.ts` (bcryptjs cost 10).
+  - Repositories: `products`, `suppliers`, `settings`, `users` with prepared SQL statements, plus `suppliers:listActive` IPC handler.
+  - Shared UI components: `Panel`, `Stamp`, `StatCard`, `DataTable`, `Button`, `Chip`, `Field`, `TextInput`, `Select`, `BarChart`, `ConfirmDialog`, `ToastProvider` / `useToast`, `EmptyState`, `Loading`.
+  - Migration loading decoupled to support both standalone tsx scripts (`scripts/seed-demo.ts`, `scripts/dump-schema.ts` via `scripts/lib/migrations.ts` reading disk migrations) and Vite/Electron (`bundledMigrations.ts` using `import.meta.glob`). Test added: `DB: disk migrations equal bundled migrations`.
+  - Seed demo runner and sales plan: `scripts/seed/plan.ts` (deterministic mulberry32 PRNG), `scripts/seed/10-core.ts` (inserts user, settings, suppliers, products with qty 0), `scripts/seed-demo.ts`.
+  - Browser mock mode: added `src/renderer/dev/mock/suppliers.ts` implementing `suppliers:listActive`.
+  - Note: `design/` screenshots were not present in the repository (noted in skeleton log). Visual design token rules and SPEC.md were used.

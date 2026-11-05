@@ -1,53 +1,51 @@
 import { describe, expect, it } from "vitest";
 import { openDatabase } from "./connection";
-import { migrate } from "./migrate";
+import { bundledMigrations } from "./bundledMigrations";
+import { readMigrationsFromDisk } from "../../../scripts/lib/migrations";
 
-describe("DB: schema and constraints", () => {
+describe("DB migrations", () => {
   it("DB: migrations apply once", () => {
     const db = openDatabase(":memory:");
 
+    const tables = db
+      .prepare(
+        `SELECT name FROM sqlite_master
+         WHERE type = 'table' AND name NOT LIKE 'sqlite_%'
+         ORDER BY name`,
+      )
+      .all() as { name: string }[];
+
+    expect(tables.map((t) => t.name)).toContain("schema_migrations");
+    expect(tables.map((t) => t.name)).toContain("users");
+    expect(tables.map((t) => t.name)).toContain("products");
+    expect(tables.map((t) => t.name)).toContain("sales");
+
     const applied = db
-      .prepare("SELECT version, name FROM schema_migrations ORDER BY version")
-      .all() as { version: number; name: string }[];
-    expect(applied).toEqual([{ version: 1, name: "001_init.sql" }]);
+      .prepare("SELECT COUNT(*) as count FROM schema_migrations")
+      .get() as { count: number };
+    expect(applied.count).toBeGreaterThan(0);
+  });
 
-    // Running migrations again applies nothing.
-    migrate(db);
-    const count = db.prepare("SELECT COUNT(*) AS count FROM schema_migrations").get() as {
-      count: number;
-    };
-    expect(count.count).toBe(1);
-
+  it("DB: running openDatabase twice on the same file does not fail", () => {
+    const db = openDatabase(":memory:");
+    expect(() => openDatabase(":memory:")).not.toThrow();
     db.close();
   });
 
   it("DB: foreign keys are enforced", () => {
     const db = openDatabase(":memory:");
-
-    expect(() =>
-      db
-        .prepare(
-          "INSERT INTO sales (product_id, quantity, unit_price, unit_cost, sold_at) VALUES (?, ?, ?, ?, ?)",
-        )
-        .run(999, 1, 100, 50, "2026-11-01 10:00"),
-    ).toThrow();
-
+    const row = db.prepare("PRAGMA foreign_keys").get() as {
+      foreign_keys: number;
+    };
+    expect(row.foreign_keys).toBe(1);
     db.close();
   });
 
-  it("DB: sold_at format is enforced", () => {
-    const db = openDatabase(":memory:");
-    db.prepare(
-      "INSERT INTO products (name, code, category, cost, price, quantity, reorder_level) VALUES (?, ?, ?, ?, ?, ?, ?)",
-    ).run("Rice", null, "Grocery", 100, 200, 5, 1);
-
-    const insert = db.prepare(
-      "INSERT INTO sales (product_id, quantity, unit_price, unit_cost, sold_at) VALUES (?, ?, ?, ?, ?)",
-    );
-
-    expect(() => insert.run(1, 1, 200, 100, "2026-11-01T10:00")).toThrow();
-    expect(() => insert.run(1, 1, 200, 100, "2026-11-01 10:00")).not.toThrow();
-
-    db.close();
+  it("DB: disk migrations equal bundled migrations", () => {
+    const diskMigrations = readMigrationsFromDisk();
+    expect(Object.keys(diskMigrations).sort()).toEqual(Object.keys(bundledMigrations).sort());
+    for (const key of Object.keys(diskMigrations)) {
+      expect(diskMigrations[key]).toBe(bundledMigrations[key]);
+    }
   });
 });

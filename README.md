@@ -62,9 +62,16 @@ the app and the tests by hand.
 npm run seed:demo
 ```
 
-This recreates a demo database (default `./demo/stockbill-demo.db`) with a demo user, suppliers,
-products, invoices and sales. Point the app at it with the `STOCKBILL_DB` environment variable,
-which overrides the default database path (used by the seed and tests only).
+This recreates a demo database (default `./demo/stockbill-demo.db`, overridable with `--out <path>`)
+with a demo user (`admin` / `admin12345`), demo shop name ("Demo Mart"), suppliers, products, and
+initial data. Point the app at it with the `STOCKBILL_DB` environment variable:
+
+```bash
+STOCKBILL_DB=./demo/stockbill-demo.db npm run dev
+```
+
+The `STOCKBILL_DB` environment variable overrides the default database path in `src/main/index.ts`
+(used for testing and demo inspection; the packaged app ignores it unless set).
 
 ## Project layout
 
