@@ -1,0 +1,59 @@
+{
+  "name": "stockbill",
+  "version": "0.0.0",
+  "description": "Offline desktop stock-keeping manager for a single shop: inventory, suppliers, sales and reports.",
+  "author": "StockBill",
+  "private": true,
+  "main": "./out/main/index.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "npm run rebuild:electron && electron-vite dev",
+    "dev:web": "vite --config vite.web.config.ts",
+    "build": "electron-vite build",
+    "dist": "npm run build && electron-builder --publish never",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "npm run rebuild:node && vitest run",
+    "verify": "npm run typecheck && npm run lint && npm test",
+    "rebuild:node": "npm rebuild better-sqlite3",
+    "rebuild:electron": "electron-builder install-app-deps",
+    "seed:demo": "npm run rebuild:node && tsx scripts/seed-demo.ts",
+    "schema:dump": "tsx scripts/dump-schema.ts"
+  },
+  "dependencies": {
+    "@fontsource/courier-prime": "^5.1.0",
+    "@fontsource/fraunces": "^5.1.0",
+    "@fontsource/inter": "^5.1.0",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.10.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.17",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^34.3.3",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^3.1.0",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "jsdom": "^26.0.0",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.19.0",
+    "vite": "^6.0.0",
+    "vitest": "^3.0.0"
+  }
+}

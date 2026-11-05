@@ -1,0 +1,178 @@
+/* ---------- Reset ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-radius: 0 !important;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  color: var(--ink);
+  background-color: var(--bg-edge);
+  background-image: radial-gradient(circle at 50% 35%, var(--bg-center) 0%, var(--bg-edge) 100%);
+  background-attachment: fixed;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+/* ---------- Shell: page frame ---------- */
+
+.page-frame {
+  margin: var(--space-8);
+  padding: var(--space-8);
+  border: var(--border-thick) solid var(--ink);
+  background: var(--paper);
+  box-shadow: var(--shadow-frame);
+}
+
+/* ---------- Shell: page header ---------- */
+
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: var(--border-thin) solid var(--ink);
+  margin-bottom: var(--space-6);
+}
+
+.page-header__title {
+  font-size: var(--text-2xl);
+  line-height: 1.1;
+}
+
+.page-header__subtitle {
+  margin: var(--space-1) 0 0;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+.page-header__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ---------- Shell: navigation bar ---------- */
+
+.navbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-3) var(--space-8);
+  border-bottom: var(--border-thick) solid var(--ink);
+  background: var(--paper-hi);
+}
+
+.navbar__wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-lg);
+}
+
+.navbar__links {
+  display: flex;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navbar__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  font-size: var(--text-sm);
+  letter-spacing: 0.02em;
+}
+
+.navbar__link--active {
+  color: var(--red);
+  text-decoration: underline;
+}
+
+.navbar__account {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-left: auto;
+}
+
+.navbar__username {
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+}
+
+.navbar__signout {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  border: var(--border-thin) solid var(--ink);
+  background: transparent;
+  cursor: pointer;
+}
+
+/* ---------- Shell: centered setup/login card ---------- */
+
+.centered-card-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: var(--space-8);
+}
+
+.centered-card {
+  width: 100%;
+  max-width: 420px;
+  padding: var(--space-8);
+  border: var(--border-thick) solid var(--ink);
+  background: var(--paper);
+  box-shadow: var(--shadow-frame);
+}
+
+.centered-card__title {
+  font-size: var(--text-2xl);
+}
+
+.placeholder-note {
+  margin: 0;
+  color: var(--ink-soft);
+}

@@ -42,6 +42,8 @@ Every commit message is a Conventional Commit: `type(scope): subject`.
 - Plain CSS with variables. No Tailwind, no component library, no chart library.
 - Fonts bundled locally via `@fontsource` (Fraunces, Inter, Courier Prime). The app must run fully offline.
 - Node 22 for development and CI. Set `"engines": {"node": ">=22"}` in `package.json`.
+- Dependencies, lockfile and all configuration files are fixed by the skeleton (`SKELETON_TASK.md`). Agents never add, remove or upgrade a dependency and never edit configuration files. Install with `npm ci` only.
+- Node and Electron imports are allowed only in `src/main/**`, `src/preload/**` and `scripts/**`. The renderer uses `window.api` only.
 
 ## Mandatory institutional rules (violations fail the project)
 - **No ORM and no query builder** (no Prisma, Drizzle, Sequelize, Knex, Kysely, TypeORM or similar). Write raw SQL.

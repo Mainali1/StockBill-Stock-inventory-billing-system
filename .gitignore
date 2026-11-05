@@ -1,0 +1,20 @@
+# Dependencies
+node_modules
+
+# Build output
+out
+dist
+demo
+
+# Databases
+*.db
+*.db-wal
+*.db-shm
+
+# Editors and OS
+.vscode
+.idea
+.DS_Store
+
+# Test coverage
+coverage
