@@ -1,16 +1,12 @@
-import Database from "better-sqlite3";
-import { migrate } from "./migrate";
+import type BetterSqlite3 from "better-sqlite3";
+import { bundledMigrations } from "./bundledMigrations";
+import { openDatabaseWith } from "./open";
 
 /**
- * Opens a SQLite database, enables foreign keys and WAL (except for in-memory
- * databases, which cannot use WAL) and brings the schema up to date.
+ * Opens a SQLite database at the given path, enforces foreign keys, sets
+ * WAL mode (for disk files) and applies all pending migrations using bundled migrations.
+ * Tests pass `":memory:"`.
  */
-export function openDatabase(path: string): Database.Database {
-  const db = new Database(path);
-  db.pragma("foreign_keys = ON");
-  if (path !== ":memory:") {
-    db.pragma("journal_mode = WAL");
-  }
-  migrate(db);
-  return db;
+export function openDatabase(path: string): BetterSqlite3.Database {
+  return openDatabaseWith(path, bundledMigrations);
 }

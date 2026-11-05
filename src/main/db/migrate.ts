@@ -1,14 +1,6 @@
 import type BetterSqlite3 from "better-sqlite3";
 
-/**
- * Every migration file lives next to this module. Vite inlines them with `?raw`
- * so the packaged app never has to read from the source tree at runtime.
- */
-const migrationFiles = import.meta.glob("./migrations/*.sql", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-}) as Record<string, string>;
+export type MigrationFiles = Record<string, string>;
 
 interface Migration {
   version: number;
@@ -16,8 +8,8 @@ interface Migration {
   sql: string;
 }
 
-function loadMigrations(): Migration[] {
-  return Object.entries(migrationFiles)
+function parseMigrations(files: MigrationFiles): Migration[] {
+  return Object.entries(files)
     .map(([path, sql]) => {
       const name = path.split("/").pop() ?? path;
       const match = /^(\d+)_/.exec(name);
@@ -35,7 +27,7 @@ function loadMigrations(): Migration[] {
  * inside its own transaction, so a failure leaves the previous state intact.
  * Running it twice applies nothing the second time.
  */
-export function migrate(db: BetterSqlite3.Database): void {
+export function applyMigrations(db: BetterSqlite3.Database, files: MigrationFiles): void {
   db.exec(
     `CREATE TABLE IF NOT EXISTS schema_migrations (
        version INTEGER PRIMARY KEY,
@@ -53,7 +45,7 @@ export function migrate(db: BetterSqlite3.Database): void {
     "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)",
   );
 
-  for (const migration of loadMigrations()) {
+  for (const migration of parseMigrations(files)) {
     if (applied.has(migration.version)) {
       continue;
     }
