@@ -1,6 +1,6 @@
 # Jules task: StockBill, built one phase per run
 
-Active phase: P0
+Active phase: P1
 
 (Only the line above changes between runs. Valid values: P0, P1, P2, P3, P4, P5, P6, P7. Execute only the task whose number matches. Read "Ground rules", "Shared reference" and your own task section. Ignore the other task sections.)
 
