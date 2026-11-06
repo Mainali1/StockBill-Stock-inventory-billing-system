@@ -1,6 +1,7 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { openDatabase } from "../src/main/db/connection";
+import { openDatabaseWith } from "../src/main/db/open";
+import { readMigrationsFromDisk } from "./lib/migrations";
 
 /**
  * Opens an in-memory database (which runs the migrations) and mirrors the
@@ -8,7 +9,8 @@ import { openDatabase } from "../src/main/db/connection";
  * the order SQLite stores them, excluding SQLite internals and the migration
  * bookkeeping table.
  */
-const db = openDatabase(":memory:");
+const migrations = readMigrationsFromDisk();
+const db = openDatabaseWith(":memory:", migrations);
 
 const rows = db
   .prepare(
