@@ -1,7 +1,7 @@
 import React from "react";
 
 export interface PanelProps {
-  title: string;
+  title: React.ReactNode;
   children: React.ReactNode;
   footer?: React.ReactNode;
 }

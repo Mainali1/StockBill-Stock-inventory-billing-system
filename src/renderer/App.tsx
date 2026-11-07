@@ -8,6 +8,7 @@ import { PageHeader } from "./components/PageHeader";
 import { SetupPage } from "./pages/SetupPage";
 import { LoginPage } from "./pages/LoginPage";
 import { InventoryPage } from "./pages/InventoryPage";
+import { SuppliersPage } from "./pages/SuppliersPage";
 
 type AuthStatus = IpcChannels["auth:status"]["out"];
 
@@ -148,7 +149,7 @@ export function App() {
         path="/suppliers"
         element={
           <Guard status={status} area="app">
-            <PlaceholderPage title="Suppliers" />
+            <SuppliersPage />
           </Guard>
         }
       />
