@@ -8,7 +8,7 @@ Agents: work only on the phase you are assigned. Tick tasks when their tests pas
 |---|---|---|---|
 | S | Skeleton (plumbing, configs, contracts) | none | done |
 | P0 | UI kit, domain helpers, seed, mock mode | S | done |
-| P1 | Authentication | S, P0 | not started |
+| P1 | Authentication | S, P0 | done |
 | P2 | Inventory | P0, P1 | not started |
 | P3 | Suppliers and supplier invoices | P0, P1 | not started |
 | P4 | Sales | P0, P1 | not started |
@@ -39,10 +39,10 @@ P2, P3 and P4 are independent of each other and may run in parallel. They must n
 - [x] `npm run verify` passes on Windows and Linux (no shell-specific script syntax)
 
 ## P1 Authentication (AUTH-1 to AUTH-5, REL-4)
-- [ ] Setup, login, logout, session, lockout in main process with tests
-- [ ] bcrypt hashing test and injection tests
-- [ ] Setup and Login screens in the visual language
-- [ ] get-app-version handler exists from P0: cover it with a test and show the version text on Setup and Login cards (REL-4)
+- [x] Setup, login, logout, session, lockout in main process with tests
+- [x] bcrypt hashing test and injection tests
+- [x] Setup and Login screens in the visual language
+- [x] get-app-version handler exists from P0: cover it with a test and show the version text on Setup and Login cards (REL-4)
 
 ## P2 Inventory (INV-1 to INV-5)
 - [ ] Repository and IPC with tests
@@ -109,3 +109,9 @@ The workflow files and `electron-builder.yml` already exist. This phase proves t
   - Seed demo runner and sales plan: `scripts/seed/plan.ts` (deterministic mulberry32 PRNG), `scripts/seed/10-core.ts` (inserts user, settings, suppliers, products with qty 0), `scripts/seed-demo.ts`.
   - Browser mock mode: added `src/renderer/dev/mock/suppliers.ts` implementing `suppliers:listActive`.
   - Note: `design/` screenshots were not present in the repository (noted in skeleton log). Visual design token rules and SPEC.md were used.
+- 2026-11-06, phase P1. Completed Authentication (AUTH-1 through AUTH-5, REL-4):
+  - Added "design/**" to eslint.config.js ignore list as approved by user because raw html mockups contained unlinted browser JS.
+  - Handlers added and tested: `auth:status`, `auth:setup`, `auth:login`, `auth:logout` with Zod input validation, atomic admin user & shop_name setup, dummy-hash timing attack resistance, in-memory 5-failure lockout (30s countdown), and session management.
+  - Passwords hashed via bcryptjs (salt cost 10) and never leaked in responses or errors; parameterized queries validated against injection payloads.
+  - UI screens implemented in the visual language: `SetupPage` and `LoginPage` based on `design/images/Khata · Login (old paper)@1x.png` and `design/html files/Khata · Login (old paper)-html/Login.dc.html`, featuring password show/hide toggles, real-time lockout timer countdown, and Courier Prime monospace `Version 0.0.0` text on the bottom-right of the cards.
+  - Browser mock mode: added `src/renderer/dev/mock/auth.ts` providing realistic mock responses for browser dev.

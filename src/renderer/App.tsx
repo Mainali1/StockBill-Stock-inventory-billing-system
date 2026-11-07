@@ -5,6 +5,8 @@ import { call } from "./api";
 import { NavBar } from "./components/NavBar";
 import { PageFrame } from "./components/PageFrame";
 import { PageHeader } from "./components/PageHeader";
+import { SetupPage } from "./pages/SetupPage";
+import { LoginPage } from "./pages/LoginPage";
 
 type AuthStatus = IpcChannels["auth:status"]["out"];
 
@@ -29,16 +31,6 @@ function Guard({
   return area === "app" ? <>{children}</> : <Navigate to="/" replace />;
 }
 
-function CenteredCard({ title }: { title: string }) {
-  return (
-    <div className="centered-card-page">
-      <div className="centered-card">
-        <h1 className="centered-card__title">{title}</h1>
-      </div>
-    </div>
-  );
-}
-
 function PlaceholderPage({ title }: { title: string }) {
   return (
     <>
@@ -53,6 +45,7 @@ function PlaceholderPage({ title }: { title: string }) {
 
 export function App() {
   const [status, setStatus] = useState<AuthStatus | null>(null);
+  const [version, setVersion] = useState("0.0.0");
 
   useEffect(() => {
     let cancelled = false;
@@ -67,6 +60,17 @@ export function App() {
           setStatus({ hasUser: true, signedIn: false, username: null, shopName: null });
         }
       });
+
+    call("app:getVersion", undefined)
+      .then((res) => {
+        if (!cancelled && res?.version) {
+          setVersion(res.version);
+        }
+      })
+      .catch(() => {
+        // fallback
+      });
+
     return () => {
       cancelled = true;
     };
@@ -82,7 +86,17 @@ export function App() {
         path="/setup"
         element={
           <Guard status={status} area="setup">
-            <CenteredCard title="Setup" />
+            <SetupPage
+              version={version}
+              onSuccess={(data) => {
+                setStatus({
+                  hasUser: true,
+                  signedIn: true,
+                  username: data.username,
+                  shopName: data.shopName,
+                });
+              }}
+            />
           </Guard>
         }
       />
@@ -90,7 +104,18 @@ export function App() {
         path="/login"
         element={
           <Guard status={status} area="login">
-            <CenteredCard title="Login" />
+            <LoginPage
+              version={version}
+              shopName={status.shopName ?? ""}
+              onSuccess={(data) => {
+                setStatus({
+                  hasUser: true,
+                  signedIn: true,
+                  username: data.username,
+                  shopName: data.shopName,
+                });
+              }}
+            />
           </Guard>
         }
       />
