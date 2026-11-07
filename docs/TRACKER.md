@@ -10,7 +10,7 @@ Agents: work only on the phase you are assigned. Tick tasks when their tests pas
 | P0 | UI kit, domain helpers, seed, mock mode | S | done |
 | P1 | Authentication | S, P0 | done |
 | P2 | Inventory | P0, P1 | done |
-| P3 | Suppliers and supplier invoices | P0, P1 | not started |
+| P3 | Suppliers and supplier invoices | P0, P1 | done |
 | P4 | Sales | P0, P1 | not started |
 | P5 | Dashboard and reports | P2, P3, P4 | not started |
 | P6 | Documentation, polish, demo readiness | P5 | not started |
@@ -49,9 +49,9 @@ P2, P3 and P4 are independent of each other and may run in parallel. They must n
 - [x] Inventory screen: list, search, chips, edit panel, add, delete/archive, status stamps, price warning
 
 ## P3 Suppliers and supplier invoices (SUP-1 to SUP-5)
-- [ ] Repositories and IPC with tests (invoice save, payment allocation, due calculation)
-- [ ] Seed file `scripts/seed/30-invoices.ts` with the stock-consistency test
-- [ ] Suppliers screen: list, detail panel, add and edit supplier, New invoice flow, Record payment flow, expandable history
+- [x] Repositories and IPC with tests (invoice save, payment allocation, due calculation)
+- [x] Seed file `scripts/seed/30-invoices.ts` with the stock-consistency test
+- [x] Suppliers screen: list, detail panel, add and edit supplier, New invoice flow, Record payment flow, expandable history
 
 ## P4 Sales (SAL-1 to SAL-5)
 - [ ] Repository and IPC with tests (save, oversell refusal, edit, delete, snapshots)
@@ -115,6 +115,12 @@ The workflow files and `electron-builder.yml` already exist. This phase proves t
   - Passwords hashed via bcryptjs (salt cost 10) and never leaked in responses or errors; parameterized queries validated against injection payloads.
   - UI screens implemented in the visual language: `SetupPage` and `LoginPage` based on `design/images/Khata · Login (old paper)@1x.png` and `design/html files/Khata · Login (old paper)-html/Login.dc.html`, featuring password show/hide toggles, real-time lockout timer countdown, and Courier Prime monospace `Version 0.0.0` text on the bottom-right of the cards.
   - Browser mock mode: added `src/renderer/dev/mock/auth.ts` providing realistic mock responses for browser dev.
+- 2026-11-07, phase P3. Completed Suppliers and supplier invoices (SUP-1 through SUP-5):
+  - Repository functions in `src/main/db/repositories/suppliersAdmin.ts` and `supplierInvoices.ts`: supplier CRUD, list with dues and search (escaped with `escapeLike`), get detail with invoices ordered newest first, transactional invoice creation (`createInvoice`) with atomic stock increments and last-cost updates, and transactional FIFO debt settlement (`recordPayment`) against oldest unpaid invoices and `supplier_payments` recording.
+  - IPC handlers registered in `src/main/ipc/suppliers.ts`: `suppliers:listActive`, `suppliers:productOptions`, `suppliers:list`, `suppliers:get`, `suppliers:save`, `suppliers:delete`, `invoices:create`, `payments:record`.
+  - Demo invoice seed data in `scripts/seed/30-invoices.ts` creating 6 demo invoices across suppliers with received quantities satisfying `received - plannedSold === finalQty`, verified with `scripts/seed/invoices.test.ts`.
+  - UI screen `SuppliersPage.tsx` matching `design/images/Khata · Suppliers (old paper)@1x.png` and HTML mockup: list with search and total dues footer, right detail panel with contact information, dashed balance due callout, expandable invoice history showing items and PAID/DUE stamps, New invoice creation form with live total computation, and Record payment dialog with "Pay full balance" convenience button.
+  - Full browser mock mode support in `src/renderer/dev/mock/suppliers.ts`.
 - 2026-11-07, phase P2. Completed Inventory (INV-1 through INV-5):
   - Repository & IPC handlers in `src/main/db/repositories/inventory.ts` and `src/main/ipc/inventory.ts`: `inventory:list`, `inventory:categories`, `inventory:save`, and `inventory:delete`.
   - Search by name or code with case-insensitive substring matching using `escapeLike` (literal `%` and `_`), category exact filter, `lowOnly` filter (`quantity <= reorder_level`), and sorted by name COLLATE NOCASE.

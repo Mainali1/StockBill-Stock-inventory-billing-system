@@ -46,3 +46,18 @@ export function formatTable(paisa: number): string {
   }).format(rupees);
   return paisa < 0 ? `-${formatted}` : formatted;
 }
+
+export function formatCard(p: number): string {
+  const abs = Math.abs(Math.round(p));
+  const hasPaisa = abs % 100 !== 0;
+  const rupeesValue = abs / 100;
+
+  const formatter = new Intl.NumberFormat("en-IN", {
+    minimumFractionDigits: hasPaisa ? 2 : 0,
+    maximumFractionDigits: hasPaisa ? 2 : 0,
+  });
+
+  const formatted = formatter.format(rupeesValue);
+  const sign = p < 0 ? "-" : "";
+  return `${sign}Rs. ${formatted}`;
+}
