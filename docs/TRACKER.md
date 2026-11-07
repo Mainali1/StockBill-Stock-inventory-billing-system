@@ -9,7 +9,7 @@ Agents: work only on the phase you are assigned. Tick tasks when their tests pas
 | S | Skeleton (plumbing, configs, contracts) | none | done |
 | P0 | UI kit, domain helpers, seed, mock mode | S | done |
 | P1 | Authentication | S, P0 | done |
-| P2 | Inventory | P0, P1 | not started |
+| P2 | Inventory | P0, P1 | done |
 | P3 | Suppliers and supplier invoices | P0, P1 | not started |
 | P4 | Sales | P0, P1 | not started |
 | P5 | Dashboard and reports | P2, P3, P4 | not started |
@@ -45,8 +45,8 @@ P2, P3 and P4 are independent of each other and may run in parallel. They must n
 - [x] get-app-version handler exists from P0: cover it with a test and show the version text on Setup and Login cards (REL-4)
 
 ## P2 Inventory (INV-1 to INV-5)
-- [ ] Repository and IPC with tests
-- [ ] Inventory screen: list, search, chips, edit panel, add, delete/archive, status stamps, price warning
+- [x] Repository and IPC with tests
+- [x] Inventory screen: list, search, chips, edit panel, add, delete/archive, status stamps, price warning
 
 ## P3 Suppliers and supplier invoices (SUP-1 to SUP-5)
 - [ ] Repositories and IPC with tests (invoice save, payment allocation, due calculation)
@@ -115,3 +115,12 @@ The workflow files and `electron-builder.yml` already exist. This phase proves t
   - Passwords hashed via bcryptjs (salt cost 10) and never leaked in responses or errors; parameterized queries validated against injection payloads.
   - UI screens implemented in the visual language: `SetupPage` and `LoginPage` based on `design/images/Khata · Login (old paper)@1x.png` and `design/html files/Khata · Login (old paper)-html/Login.dc.html`, featuring password show/hide toggles, real-time lockout timer countdown, and Courier Prime monospace `Version 0.0.0` text on the bottom-right of the cards.
   - Browser mock mode: added `src/renderer/dev/mock/auth.ts` providing realistic mock responses for browser dev.
+- 2026-11-07, phase P2. Completed Inventory (INV-1 through INV-5):
+  - Repository & IPC handlers in `src/main/db/repositories/inventory.ts` and `src/main/ipc/inventory.ts`: `inventory:list`, `inventory:categories`, `inventory:save`, and `inventory:delete`.
+  - Search by name or code with case-insensitive substring matching using `escapeLike` (literal `%` and `_`), category exact filter, `lowOnly` filter (`quantity <= reorder_level`), and sorted by name COLLATE NOCASE.
+  - Creation & editing validation with exact messages, duplicate code check across non-archived and archived products (`CONFLICT` with message `That code is already used by {product name}.`), and supplier verification against active suppliers.
+  - Status calculation: OUT at 0, LOW at or below reorder level, otherwise IN_STOCK.
+  - Deletion logic: soft-archives (`archived = 1`) if the product has historical sales or invoice items; hard deletes otherwise.
+  - Price-below-cost non-blocking warning (`Price is lower than cost. You will lose money on each sale.`) returned on save and displayed while typing and via toast.
+  - UI screen: `InventoryPage.tsx` matching `design/images/Khata · Inventory (old paper)@1x.png` and HTML mockup with debounced search, category & low-stock chips, table with status stamps and monospace money, edit/new side panel, dirty-state discard confirmation dialog, and delete confirmation dialog. Preselection supported via `?product=<id>`.
+  - Browser mock mode in `src/renderer/dev/mock/inventory.ts` seeded with Demo data table items.

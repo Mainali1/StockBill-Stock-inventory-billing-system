@@ -15,6 +15,7 @@ import "./styles/base.css";
 import "./styles/print.css";
 
 import { installMockApi } from "./dev/mockApi";
+import { ToastProvider } from "./components/Toast";
 import { App } from "./App";
 
 installMockApi();
@@ -27,7 +28,9 @@ if (container === null) {
 createRoot(container).render(
   <StrictMode>
     <HashRouter>
-      <App />
+      <ToastProvider>
+        <App />
+      </ToastProvider>
     </HashRouter>
   </StrictMode>,
 );

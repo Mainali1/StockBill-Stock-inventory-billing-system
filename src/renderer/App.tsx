@@ -7,6 +7,7 @@ import { PageFrame } from "./components/PageFrame";
 import { PageHeader } from "./components/PageHeader";
 import { SetupPage } from "./pages/SetupPage";
 import { LoginPage } from "./pages/LoginPage";
+import { InventoryPage } from "./pages/InventoryPage";
 
 type AuthStatus = IpcChannels["auth:status"]["out"];
 
@@ -139,7 +140,7 @@ export function App() {
         path="/inventory"
         element={
           <Guard status={status} area="app">
-            <PlaceholderPage title="Inventory" />
+            <InventoryPage />
           </Guard>
         }
       />
