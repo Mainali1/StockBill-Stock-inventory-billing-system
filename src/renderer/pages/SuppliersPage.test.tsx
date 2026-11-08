@@ -187,6 +187,35 @@ describe("SuppliersPage component tests", () => {
     expect(amountInput).toBeInTheDocument();
   });
 
+  it("SUP-4: closes Record payment overlay on Escape", async () => {
+    render(
+      <MemoryRouter initialEntries={["/suppliers"]}>
+        <ToastProvider>
+          <Routes>
+            <Route path="/suppliers" element={<SuppliersPage />} />
+          </Routes>
+        </ToastProvider>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Koshi Wholesale").length).toBeGreaterThan(0);
+    });
+
+    const recordPayBtn = screen.getByRole("button", { name: "Record payment" });
+    fireEvent.click(recordPayBtn);
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "Record payment" })).toBeInTheDocument();
+    });
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    await waitFor(() => {
+      expect(screen.queryByRole("heading", { name: "Record payment" })).not.toBeInTheDocument();
+    });
+  });
+
   it("SUP-3: invoice form computes total live", async () => {
     render(
       <MemoryRouter initialEntries={["/suppliers"]}>
@@ -208,6 +237,36 @@ describe("SuppliersPage component tests", () => {
     await waitFor(() => {
       expect(screen.getByText("New invoice")).toBeInTheDocument();
       expect(screen.getByText("Total (computed)")).toBeInTheDocument();
+    });
+  });
+
+  it("SUP-3: closes New invoice form on Escape", async () => {
+    render(
+      <MemoryRouter initialEntries={["/suppliers"]}>
+        <ToastProvider>
+          <Routes>
+            <Route path="/suppliers" element={<SuppliersPage />} />
+          </Routes>
+        </ToastProvider>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Koshi Wholesale").length).toBeGreaterThan(0);
+    });
+
+    const newInvoiceBtn = screen.getByRole("button", { name: "New invoice" });
+    fireEvent.click(newInvoiceBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText("New invoice")).toBeInTheDocument();
+    });
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    await waitFor(() => {
+      expect(screen.queryByRole("heading", { name: "New invoice" })).not.toBeInTheDocument();
+      expect(screen.getByText("Invoice history")).toBeInTheDocument();
     });
   });
 });

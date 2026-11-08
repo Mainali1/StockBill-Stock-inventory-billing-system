@@ -173,6 +173,9 @@ describe("Shared components", () => {
     fireEvent.click(screen.getByText("Cancel"));
     expect(onCancel).toHaveBeenCalled();
 
+    fireEvent.keyDown(screen.getByRole("dialog", { hidden: true }), { key: "Escape" });
+    expect(onCancel).toHaveBeenCalledTimes(2);
+
     rerender(
       <ConfirmDialog
         open={false}

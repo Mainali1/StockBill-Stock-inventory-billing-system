@@ -184,4 +184,16 @@ const inventoryMock: MockModule = {
   },
 };
 
+export function applyMockInvoiceItems(
+  items: { productId: number; quantity: number; unitCost: number }[]
+): void {
+  for (const item of items) {
+    const prod = products.find((p) => p.id === item.productId && p.archived === 0);
+    if (prod) {
+      prod.quantity += item.quantity;
+      prod.cost = item.unitCost;
+    }
+  }
+}
+
 export default inventoryMock;
