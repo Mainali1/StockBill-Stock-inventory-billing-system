@@ -32,7 +32,16 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
+      - name: Install dependencies (retry on network errors)
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            npm ci && exit 0
+            echo "npm ci failed (attempt $attempt), retrying in 20s"
+            sleep 20
+          done
+          exit 1
+
       - run: npm run verify
 
   version:
@@ -81,8 +90,15 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install dependencies (retry on network errors)
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            npm ci && exit 0
+            echo "npm ci failed (attempt $attempt), retrying in 20s"
+            sleep 20
+          done
+          exit 1
 
       - name: Stamp version into package.json (not committed)
         shell: bash
