@@ -11,7 +11,7 @@ Agents: work only on the phase you are assigned. Tick tasks when their tests pas
 | P1 | Authentication | S, P0 | done |
 | P2 | Inventory | P0, P1 | done |
 | P3 | Suppliers and supplier invoices | P0, P1 | done |
-| P4 | Sales | P0, P1 | not started |
+| P4 | Sales | P0, P1 | done |
 | P5 | Dashboard and reports | P2, P3, P4 | not started |
 | P6 | Documentation, polish, demo readiness | P5 | not started |
 | P7 | Release pipeline | P0, P1 | not started |
@@ -54,10 +54,10 @@ P2, P3 and P4 are independent of each other and may run in parallel. They must n
 - [x] Suppliers screen: list, detail panel, add and edit supplier, New invoice flow, Record payment flow, expandable history
 
 ## P4 Sales (SAL-1 to SAL-5)
-- [ ] Repository and IPC with tests (save, oversell refusal, edit, delete, snapshots)
-- [ ] Seed file `scripts/seed/40-sales.ts` that ends with every product at its target stock
-- [ ] Sales screen: picker, entry panel with date-time field, Sales on date panel with hourly chart, edit and delete rows
-- [ ] Screen test (jsdom): changing the date-time field changes the day panel; saving a sale updates totals
+- [x] Repository and IPC with tests (save, oversell refusal, edit, delete, snapshots)
+- [x] Seed file `scripts/seed/40-sales.ts` that ends with every product at its target stock
+- [x] Sales screen: picker, entry panel with date-time field, Sales on date panel with hourly chart, edit and delete rows
+- [x] Screen test (jsdom): changing the date-time field changes the day panel; saving a sale updates totals
 
 ## P5 Dashboard and reports (DASH-1 to DASH-5, REP-1 to REP-7)
 - [ ] Aggregation functions in `domain` with tests (by day, by hour, week range, top products, valuation)
@@ -130,3 +130,10 @@ The workflow files and `electron-builder.yml` already exist. This phase proves t
   - Price-below-cost non-blocking warning (`Price is lower than cost. You will lose money on each sale.`) returned on save and displayed while typing and via toast.
   - UI screen: `InventoryPage.tsx` matching `design/images/Khata · Inventory (old paper)@1x.png` and HTML mockup with debounced search, category & low-stock chips, table with status stamps and monospace money, edit/new side panel, dirty-state discard confirmation dialog, and delete confirmation dialog. Preselection supported via `?product=<id>`.
   - Browser mock mode in `src/renderer/dev/mock/inventory.ts` seeded with Demo data table items.
+- 2026-11-07, phase P4. Completed Sales (SAL-1 through SAL-5):
+  - Repository & IPC handlers in `src/main/db/repositories/sales.ts` and `src/main/ipc/sales.ts`: `sales:picker`, `sales:save`, `sales:day`, `sales:update`, `sales:delete`.
+  - Transactional sales save with atomicity: validates dates, quantities, and unit prices, aggregates line requirements per product to check against available stock, snapshots `unit_cost` and `unit_price`, decrements stock, and returns `DaySalesDto`. Refuses overselling with exact rule message.
+  - Transactional row updates and deletions: adjusts stock by delta on update and restores stock on delete (including for archived products) while refusing negative stock.
+  - Implemented Sales demo seed in `scripts/seed/40-sales.ts` executing `buildSalesPlan(today)` and verifying that final stock matches `finalQty` for every demo product.
+  - UI screen: `SalesPage.tsx` matching visual design language with product picker and category chips, Out status indicators, datetime-local "When" input with "Now" button, interactive cart lines with quantity adjusters and inline shortage alerts, full-width "Sales on <date>" panel with stat cards, 24-hr BarChart, and editable/deletable sales history table with ConfirmDialog.
+  - Browser mock mode in `src/renderer/dev/mock/sales.ts` implementing all 5 sales channels.
