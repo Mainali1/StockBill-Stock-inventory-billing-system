@@ -121,4 +121,45 @@ describe("REL-4: Auth Pages", () => {
       });
     });
   });
+
+  it("P1: auth pages only use defined tokens", async () => {
+    // In vitest Node/jsdom test runner, dynamically import node:fs and node:path to inspect page sources
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+
+    const tokensCss = fs.readFileSync(
+      path.resolve(__dirname, "../styles/tokens.css"),
+      "utf-8",
+    );
+    const loginSrc = fs.readFileSync(
+      path.resolve(__dirname, "./LoginPage.tsx"),
+      "utf-8",
+    );
+    const setupSrc = fs.readFileSync(
+      path.resolve(__dirname, "./SetupPage.tsx"),
+      "utf-8",
+    );
+
+    // Extract all CSS variable definitions from tokens.css: e.g. --red, --paper
+    const definedTokens = new Set<string>(
+      Array.from(tokensCss.matchAll(/--([a-zA-Z0-9_-]+):/g) as Iterable<RegExpMatchArray>).map(
+        (m: RegExpMatchArray) => `--${m[1]}`,
+      ),
+    );
+
+    for (const [name, src] of [["LoginPage", loginSrc], ["SetupPage", setupSrc]] as const) {
+      // Check for hard-coded hex colors
+      const hexMatches = src.match(/#[0-9a-fA-F]{3,8}\b/g) || [];
+      expect(hexMatches, `${name} must not contain hard-coded hex colors`).toEqual([]);
+
+      // Extract all var(--name) calls
+      const varMatches = Array.from(
+        src.matchAll(/var\((--[a-zA-Z0-9_-]+)\)/g) as Iterable<RegExpMatchArray>,
+      ).map((m: RegExpMatchArray) => m[1]);
+      expect(varMatches.length, `${name} should use css variables`).toBeGreaterThan(0);
+
+      const undefinedUsed = varMatches.filter((tok) => Boolean(tok && !definedTokens.has(tok)));
+      expect(undefinedUsed, `${name} contains tokens not defined in tokens.css`).toEqual([]);
+    }
+  });
 });
