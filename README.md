@@ -1,11 +1,28 @@
 # StockBill
 
+[![Release](https://github.com/Mainali1/StockBill-Stock-inventory-billing-system/actions/workflows/release.yml/badge.svg)](https://github.com/Mainali1/StockBill-Stock-inventory-billing-system/actions/workflows/release.yml)
+
 StockBill is an offline desktop stock-keeping manager for a single shop. The owner keeps a product
 list with cost, price, quantity and reorder level; records invoices received from suppliers (which
 add stock and create amounts owed); records what was sold, per item, at a chosen date and time
 (which removes stock); and reads a dashboard and reports for any day or range. There are no
 customers, no payment methods, no tax and no receipts. It is one offline program with a single owner
 account.
+
+## Download
+
+Packaged installers for each release are available on the [GitHub Releases](https://github.com/Mainali1/StockBill-Stock-inventory-billing-system/releases) page:
+
+- **Windows**: `StockBill-<version>-win-x64.exe` (NSIS installer).
+- **Linux**: `StockBill-<version>-linux-x86_64.AppImage` (standalone AppImage). Make it executable (`chmod +x`) and run.
+- **macOS**: `StockBill-<version>-mac-arm64.dmg` (Apple Silicon DMG).
+
+### Unsigned installer warning
+
+Installers are unsigned. This is intentional for this academic project. Your operating system may display a security prompt when opening the installer for the first time:
+
+- **Windows (SmartScreen)**: Click **More info**, then click **Run anyway**.
+- **macOS (Gatekeeper)**: Right-click (or Control-click) the application in Finder and select **Open**, then confirm by clicking **Open** in the dialog.
 
 ## Requirements
 
