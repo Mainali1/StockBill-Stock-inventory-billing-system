@@ -1,3 +1,4 @@
+import { applyMockInvoiceItems } from "./inventory";
 import type { MockModule } from "../mockApi";
 import type {
   SupplierSummaryDto,
@@ -437,6 +438,16 @@ const suppliersMock: MockModule = {
       }),
     };
     s.invoices.unshift(newInvoice);
+
+    applyMockInvoiceItems(input.items);
+
+    for (const it of input.items) {
+      const prod = mockProducts.find((p) => p.id === it.productId);
+      if (prod) {
+        prod.cost = it.unitCost;
+      }
+    }
+
     return newInvoice;
   },
 

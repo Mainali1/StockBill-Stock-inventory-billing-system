@@ -145,3 +145,8 @@ The workflow files and `electron-builder.yml` already exist. This phase proves t
 - 2026-11-08, phase P1 fix. Design token replacement on auth screens:
   - Replaced all hard-coded hex colors and inline styling in `src/renderer/pages/LoginPage.tsx` and `src/renderer/pages/SetupPage.tsx` with CSS variables strictly from `src/renderer/styles/tokens.css` (`var(--paper)`, `var(--paper-hi)`, `var(--ink)`, `var(--ink-soft)`, `var(--red)`, `var(--bg-edge)`, `var(--border-thin)`, `var(--font-display)`, `var(--font-body)`, `var(--font-mono)`, `var(--shadow-frame)`).
   - Added test `P1: auth pages only use defined tokens` in `src/renderer/pages/auth.test.tsx` verifying no hardcoded hex codes exist in either page and that every `var(--name)` used is declared in `tokens.css`.
+- 2026-11-08, maintenance fix. IPC registration deduplication, dialog Escape handlers, and mock invoice stock update:
+  - Removed duplicate `auth:status` handler in `src/main/ipc/core.ts` and unused types/imports.
+  - Added registration guard test `GUARD: every IPC channel registers exactly once` in `src/main/ipc/guard.test.ts` testing uniqueness against throwing `ipcMain.handle`.
+  - Added Escape key listeners to `ConfirmDialog` and `SuppliersPage` overlays (Record payment dialog and New invoice form) with focus restoration, tested under requirement IDs `SUP-3` and `SUP-4`.
+  - Connected mock layer `invoices:create` in `src/renderer/dev/mock/suppliers.ts` to `applyMockInvoiceItems` in `src/renderer/dev/mock/inventory.ts` to increase product quantities and update product costs, tested in `src/renderer/dev/mock/suppliersMock.test.ts`.

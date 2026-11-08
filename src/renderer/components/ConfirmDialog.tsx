@@ -21,18 +21,24 @@ export function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps): React.JSX.Element | null {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
 
     if (open) {
+      previouslyFocusedElementRef.current = document.activeElement as HTMLElement | null;
       if (!dialog.open) {
         dialog.showModal();
       }
     } else {
       if (dialog.open) {
         dialog.close();
+      }
+      if (previouslyFocusedElementRef.current) {
+        previouslyFocusedElementRef.current.focus();
+        previouslyFocusedElementRef.current = null;
       }
     }
   }, [open]);
@@ -46,8 +52,19 @@ export function ConfirmDialog({
       onCancel();
     };
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onCancel();
+      }
+    };
+
     dialog.addEventListener("cancel", handleCancel);
-    return () => dialog.removeEventListener("cancel", handleCancel);
+    dialog.addEventListener("keydown", handleKeyDown);
+    return () => {
+      dialog.removeEventListener("cancel", handleCancel);
+      dialog.removeEventListener("keydown", handleKeyDown);
+    };
   }, [onCancel]);
 
   if (!open) return null;

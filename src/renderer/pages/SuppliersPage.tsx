@@ -79,6 +79,9 @@ export function SuppliersPage(): React.JSX.Element {
 
   const [expandedInvoiceIds, setExpandedInvoiceIds] = useState<Set<number>>(new Set());
 
+  const newInvoiceOpenerRef = useRef<HTMLElement | null>(null);
+  const recordPaymentOpenerRef = useRef<HTMLElement | null>(null);
+
   const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
   const handleSearchChange = (val: string) => {
     setSearch(val);
@@ -136,6 +139,24 @@ export function SuppliersPage(): React.JSX.Element {
     loadSuppliersList();
     loadProductOptions();
   }, [loadSuppliersList]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (paymentDialogOpen) {
+          e.preventDefault();
+          setPaymentDialogOpen(false);
+          recordPaymentOpenerRef.current?.focus();
+        } else if (mode === "invoiceForm") {
+          e.preventDefault();
+          setMode("detail");
+          newInvoiceOpenerRef.current?.focus();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [paymentDialogOpen, mode]);
 
   useEffect(() => {
     const suppIdParam = searchParams.get("supplier");
@@ -241,6 +262,7 @@ export function SuppliersPage(): React.JSX.Element {
 
   const handleOpenNewInvoice = () => {
     if (!selectedSupplierDetail) return;
+    newInvoiceOpenerRef.current = document.activeElement as HTMLElement | null;
     setInvoiceNo("");
     setInvoiceDate(todayDb());
     if (productOptions.length > 0) {
@@ -403,6 +425,7 @@ export function SuppliersPage(): React.JSX.Element {
 
   const handleOpenRecordPayment = () => {
     if (!selectedSupplierDetail || selectedSupplierDetail.due <= 0) return;
+    recordPaymentOpenerRef.current = document.activeElement as HTMLElement | null;
     setPaymentAmountRupees("");
     setPaymentError(null);
     setPaymentDialogOpen(true);
