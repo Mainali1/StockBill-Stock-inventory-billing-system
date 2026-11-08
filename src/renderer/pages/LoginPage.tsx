@@ -66,16 +66,17 @@ export function LoginPage({ version, shopName, onSuccess }: LoginPageProps): JSX
         alignItems: "center",
         justifyContent: "center",
         minHeight: "100vh",
-        backgroundColor: "#D7C4A5",
-        fontFamily: "'Inter', sans-serif",
+        backgroundColor: "var(--bg-edge)",
+        backgroundImage: "radial-gradient(ellipse at 50% 40%, var(--paper-hi), var(--bg-edge) 100%)",
+        fontFamily: "var(--font-body)",
       }}
     >
       <div
         style={{
           width: "440px",
-          backgroundColor: "#F7F2E7",
-          border: "1px solid #1C1917",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+          backgroundColor: "var(--paper)",
+          border: "var(--border-thin) solid var(--ink)",
+          boxShadow: "var(--shadow-frame)",
           padding: "36px 32px 28px 32px",
           display: "flex",
           flexDirection: "column",
@@ -83,13 +84,13 @@ export function LoginPage({ version, shopName, onSuccess }: LoginPageProps): JSX
           boxSizing: "border-box",
         }}
       >
-        <div style={{ borderBottom: "1px solid #1C1917", paddingBottom: "14px" }}>
+        <div style={{ borderBottom: "var(--border-thin) solid var(--ink)", paddingBottom: "14px" }}>
           <div
             style={{
-              fontFamily: "'Fraunces', serif",
+              fontFamily: "var(--font-display)",
               fontSize: "32px",
               fontWeight: 700,
-              color: "#1C1917",
+              color: "var(--ink)",
               lineHeight: 1.1,
             }}
           >
@@ -98,7 +99,7 @@ export function LoginPage({ version, shopName, onSuccess }: LoginPageProps): JSX
           <div
             style={{
               fontSize: "13px",
-              color: "#78716C",
+              color: "var(--ink-soft)",
               marginTop: "4px",
             }}
           >
@@ -109,16 +110,17 @@ export function LoginPage({ version, shopName, onSuccess }: LoginPageProps): JSX
         <div>
           <h1
             style={{
+              fontFamily: "var(--font-display)",
               fontSize: "20px",
               fontWeight: 600,
-              color: "#1C1917",
+              color: "var(--ink)",
               marginBottom: "4px",
               marginTop: 0,
             }}
           >
             Login
           </h1>
-          <div style={{ fontSize: "13px", color: "#78716C" }}>
+          <div style={{ fontSize: "13px", color: "var(--ink-soft)" }}>
             Open the books with your login.
           </div>
         </div>
@@ -128,9 +130,9 @@ export function LoginPage({ version, shopName, onSuccess }: LoginPageProps): JSX
             role="alert"
             style={{
               padding: "10px 12px",
-              backgroundColor: "#FEE2E2",
-              border: "1px solid #EF4444",
-              color: "#991B1B",
+              backgroundColor: "var(--paper-hi)",
+              border: "var(--border-thin) solid var(--red)",
+              color: "var(--red)",
               fontSize: "13px",
               borderRadius: "2px",
             }}
@@ -149,7 +151,7 @@ export function LoginPage({ version, shopName, onSuccess }: LoginPageProps): JSX
                 display: "block",
                 fontSize: "11px",
                 fontWeight: 600,
-                color: "#1C1917",
+                color: "var(--ink)",
                 textTransform: "uppercase",
                 letterSpacing: "0.5px",
                 marginBottom: "6px",
@@ -168,10 +170,10 @@ export function LoginPage({ version, shopName, onSuccess }: LoginPageProps): JSX
                 width: "100%",
                 height: "38px",
                 padding: "8px 12px",
-                border: "1px solid #1C1917",
-                backgroundColor: "#FBF9F4",
+                border: "var(--border-thin) solid var(--ink)",
+                backgroundColor: "var(--paper-hi)",
                 fontSize: "14px",
-                color: "#1C1917",
+                color: "var(--ink)",
                 boxSizing: "border-box",
                 outline: "none",
               }}
@@ -185,7 +187,7 @@ export function LoginPage({ version, shopName, onSuccess }: LoginPageProps): JSX
                 display: "block",
                 fontSize: "11px",
                 fontWeight: 600,
-                color: "#1C1917",
+                color: "var(--ink)",
                 textTransform: "uppercase",
                 letterSpacing: "0.5px",
                 marginBottom: "6px",
@@ -205,11 +207,11 @@ export function LoginPage({ version, shopName, onSuccess }: LoginPageProps): JSX
                   flex: 1,
                   height: "38px",
                   padding: "8px 12px",
-                  border: "1px solid #1C1917",
+                  border: "var(--border-thin) solid var(--ink)",
                   borderRight: "none",
-                  backgroundColor: "#FBF9F4",
+                  backgroundColor: "var(--paper-hi)",
                   fontSize: "14px",
-                  color: "#1C1917",
+                  color: "var(--ink)",
                   boxSizing: "border-box",
                   outline: "none",
                 }}
@@ -221,11 +223,11 @@ export function LoginPage({ version, shopName, onSuccess }: LoginPageProps): JSX
                 style={{
                   height: "38px",
                   padding: "0 14px",
-                  border: "1px solid #1C1917",
-                  backgroundColor: "#EBE4D5",
+                  border: "var(--border-thin) solid var(--ink)",
+                  backgroundColor: "var(--paper)",
                   fontSize: "12px",
                   fontWeight: 500,
-                  color: "#1C1917",
+                  color: "var(--ink)",
                   cursor: "pointer",
                 }}
               >
@@ -240,9 +242,9 @@ export function LoginPage({ version, shopName, onSuccess }: LoginPageProps): JSX
             style={{
               height: "44px",
               marginTop: "10px",
-              backgroundColor: "#82271A",
-              color: "#F7F2E7",
-              border: "1px solid #1C1917",
+              backgroundColor: "var(--red)",
+              color: "var(--paper-hi)",
+              border: "var(--border-thin) solid var(--ink)",
               fontSize: "14px",
               fontWeight: 600,
               cursor:
@@ -262,9 +264,9 @@ export function LoginPage({ version, shopName, onSuccess }: LoginPageProps): JSX
 
         <div
           style={{
-            fontFamily: "'Courier Prime', monospace",
+            fontFamily: "var(--font-mono)",
             fontSize: "11px",
-            color: "#78716C",
+            color: "var(--ink-soft)",
             textAlign: "right",
             marginTop: "10px",
           }}

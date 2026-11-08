@@ -142,3 +142,6 @@ The workflow files and `electron-builder.yml` already exist. This phase proves t
   - Validated local packaging: executed `npm run dist` locally and verified generation of `dist/StockBill-0.0.0-linux-x86_64.AppImage` with native SQLite module unpacked.
   - Updated `README.md` with release badge, `## Download` section detailing platform artifacts, GitHub Releases link, and unsigned installer security prompt bypass instructions for Windows SmartScreen and macOS Gatekeeper.
   - Authored `docs/release-process.md` with a complete Mermaid `flowchart TD`, commit type version-bump table, and explanation of why version bumps are never committed to git.
+- 2026-11-08, phase P1 fix. Design token replacement on auth screens:
+  - Replaced all hard-coded hex colors and inline styling in `src/renderer/pages/LoginPage.tsx` and `src/renderer/pages/SetupPage.tsx` with CSS variables strictly from `src/renderer/styles/tokens.css` (`var(--paper)`, `var(--paper-hi)`, `var(--ink)`, `var(--ink-soft)`, `var(--red)`, `var(--bg-edge)`, `var(--border-thin)`, `var(--font-display)`, `var(--font-body)`, `var(--font-mono)`, `var(--shadow-frame)`).
+  - Added test `P1: auth pages only use defined tokens` in `src/renderer/pages/auth.test.tsx` verifying no hardcoded hex codes exist in either page and that every `var(--name)` used is declared in `tokens.css`.
