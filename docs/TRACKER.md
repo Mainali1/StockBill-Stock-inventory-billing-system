@@ -14,7 +14,7 @@ Agents: work only on the phase you are assigned. Tick tasks when their tests pas
 | P4 | Sales | P0, P1 | done |
 | P5 | Dashboard and reports | P2, P3, P4 | not started |
 | P6 | Documentation, polish, demo readiness | P5 | not started |
-| P7 | Release pipeline | P0, P1 | not started |
+| P7 | Release pipeline | P0, P1 | done |
 
 P7 is independent of P2 to P6 and may run at any time after P1. It touches only `.github/`, `electron-builder.yml`, `tests/`, `docs/release-process.md` and the README Download section.
 
@@ -74,11 +74,11 @@ P2, P3 and P4 are independent of each other and may run in parallel. They must n
 
 ## P7 Release pipeline (REL-1 to REL-7)
 The workflow files and `electron-builder.yml` already exist. This phase proves they work with the real project and documents them.
-- [ ] Test `tests/release-config.test.ts` (REL-6): every `npm run <script>` named in `.github/workflows/*.yml` exists in `package.json`; `electron-builder.yml` exists and contains `asarUnpack`
-- [ ] Run `npm run dist` locally; confirm an installer file appears in `dist/` and that the packaged app can open its database (migrations bundled, path under userData); fix packaging problems by changing `electron-builder.yml` or app code, not by weakening tests
-- [ ] Fix any workflow step that cannot succeed with this project's actual scripts, keeping the structure (verify, version, build matrix, release) intact; record each change in the agent log
-- [ ] README Download section (REL-5) and a status badge for the Release workflow
-- [ ] `docs/release-process.md` with a Mermaid flowchart (REL-7)
+- [x] Test `tests/release-config.test.ts` (REL-6): every `npm run <script>` named in `.github/workflows/*.yml` exists in `package.json`; `electron-builder.yml` exists and contains `asarUnpack`
+- [x] Run `npm run dist` locally; confirm an installer file appears in `dist/` and that the packaged app can open its database (migrations bundled, path under userData); fix packaging problems by changing `electron-builder.yml` or app code, not by weakening tests
+- [x] Fix any workflow step that cannot succeed with this project's actual scripts, keeping the structure (verify, version, build matrix, release) intact; record each change in the agent log
+- [x] README Download section (REL-5) and a status badge for the Release workflow
+- [x] `docs/release-process.md` with a Mermaid flowchart (REL-7)
 
 ## Agent log
 - 2026-11-05, phase S (skeleton). Built the application frame only: repo hygiene files, `package.json`
@@ -137,3 +137,8 @@ The workflow files and `electron-builder.yml` already exist. This phase proves t
   - Implemented Sales demo seed in `scripts/seed/40-sales.ts` executing `buildSalesPlan(today)` and verifying that final stock matches `finalQty` for every demo product.
   - UI screen: `SalesPage.tsx` matching visual design language with product picker and category chips, Out status indicators, datetime-local "When" input with "Now" button, interactive cart lines with quantity adjusters and inline shortage alerts, full-width "Sales on <date>" panel with stat cards, 24-hr BarChart, and editable/deletable sales history table with ConfirmDialog.
   - Browser mock mode in `src/renderer/dev/mock/sales.ts` implementing all 5 sales channels.
+- 2026-11-08, phase P7. Completed Release pipeline (REL-1 through REL-7):
+  - Created `tests/release-config.test.ts` verifying REL-6 (workflow scripts exist in `package.json`, `electron-builder.yml` specifies `asarUnpack` for `**/*.node`), REL-2 (`package.json` version is `0.0.0`, dynamic tagging in release workflow), REL-3 (artifact naming pattern `${productName}-${version}-${os}-${arch}.${ext}` across Windows NSIS, Linux AppImage, macOS DMG), REL-5 (README Download section, releases link, unsigned installer notes, release badge), and REL-7 (`docs/release-process.md` flowchart, bump table, zero-commit rationale).
+  - Validated local packaging: executed `npm run dist` locally and verified generation of `dist/StockBill-0.0.0-linux-x86_64.AppImage` with native SQLite module unpacked.
+  - Updated `README.md` with release badge, `## Download` section detailing platform artifacts, GitHub Releases link, and unsigned installer security prompt bypass instructions for Windows SmartScreen and macOS Gatekeeper.
+  - Authored `docs/release-process.md` with a complete Mermaid `flowchart TD`, commit type version-bump table, and explanation of why version bumps are never committed to git.
