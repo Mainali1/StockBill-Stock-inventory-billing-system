@@ -1,12 +1,26 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, vi } from "vitest";
+
+type HandlerFn = (event: unknown, input: unknown) => Promise<unknown>;
+const ipcHandlers = new Map<string, HandlerFn>();
+
+vi.mock("electron", () => ({
+  ipcMain: {
+    handle: vi.fn((channel: string, fn: HandlerFn) => {
+      ipcHandlers.set(channel, fn);
+    }),
+  },
+}));
+
 import { openDatabase } from "../db/connection";
-import { createHandler, type HandlerContext } from "./handle";
-import { resetAuthFailures } from "./auth";
+import { createHandler, setDatabase, type HandlerContext } from "./handle";
+import { register as registerAuth, resetAuthFailures } from "./auth";
+import { register as registerInventory } from "./inventory";
+import { register as registerSuppliers } from "./suppliers";
 import { z } from "zod";
 import * as settingsRepo from "../db/repositories/settings";
 import * as usersRepo from "../db/repositories/users";
 import { hashPassword, verifyPassword } from "../auth/password";
-import { setSession, clearSession } from "../session";
+import { setSession, clearSession, getSession } from "../session";
 import { DomainError } from "../domain/errors";
 import { nowDbDateTime } from "../domain/dates";
 import type BetterSqlite3 from "better-sqlite3";
@@ -281,32 +295,189 @@ describe("AUTH-3", () => {
 });
 
 describe("AUTH-4", () => {
-  it("AUTH-4: passwords are hashed and password hash is never exposed", async () => {
-    const rawPassword = "mysecretpassword123";
-    const hash = await hashPassword(rawPassword);
-    expect(hash).not.toBe(rawPassword);
-    expect(hash.startsWith("$2a$") || hash.startsWith("$2b$")).toBe(true);
-    expect(await verifyPassword(rawPassword, hash)).toBe(true);
+  it("AUTH-4: stored value is a bcrypt hash and auth handler results contain no password or hash", async () => {
+    const db = openDatabase(":memory:");
+    setDatabase(db);
+    clearSession();
+    resetAuthFailures();
+    ipcHandlers.clear();
+
+    registerAuth();
+
+    const callHandler = async <T = unknown>(channel: string, input: unknown): Promise<T> => {
+      const fn = ipcHandlers.get(channel);
+      if (!fn) throw new Error(`Handler for ${channel} not found`);
+      return (await fn({}, input)) as T;
+    };
+
+    const rawPassword = "SuperSecretPassword123!";
+
+    // 1. auth:setup
+    const setupResult = await callHandler("auth:setup", {
+      shopName: "Security Store",
+      username: "secureadmin",
+      password: rawPassword,
+      confirmPassword: rawPassword,
+    });
+
+    // Check stored value in users table
+    const storedUser = usersRepo.findByUsername(db, "secureadmin");
+    expect(storedUser).not.toBeNull();
+    const storedHash = storedUser!.password_hash;
+
+    // Assert that the stored value is a bcrypt hash (starts with $2) and is not the plain password
+    expect(storedHash.startsWith("$2")).toBe(true);
+    expect(storedHash).not.toBe(rawPassword);
+    expect(await verifyPassword(rawPassword, storedHash)).toBe(true);
+
+    // 2. auth:status while signed in
+    const statusResultSignedIn = await callHandler("auth:status", undefined);
+
+    // 3. auth:logout
+    const logoutResult = await callHandler("auth:logout", undefined);
+
+    // 4. auth:status while signed out
+    const statusResultSignedOut = await callHandler("auth:status", undefined);
+
+    // 5. auth:login
+    const loginResult = await callHandler("auth:login", {
+      username: "secureadmin",
+      password: rawPassword,
+    });
+
+    const results = [
+      setupResult,
+      statusResultSignedIn,
+      logoutResult,
+      statusResultSignedOut,
+      loginResult,
+    ];
+
+    for (const res of results) {
+      const json = JSON.stringify(res);
+      expect(json).not.toContain("password");
+      expect(json).not.toContain("$2");
+    }
   });
 });
 
 describe("AUTH-5", () => {
-  it("AUTH-5: SQL injection payloads fail safely without SQL syntax errors or data corruption", async () => {
+  it("AUTH-5: SQL injection payloads fail safely through real handlers without logging in or altering data", async () => {
     const db = openDatabase(":memory:");
-    const injectionUsernames = [
+    setDatabase(db);
+    clearSession();
+    resetAuthFailures();
+    ipcHandlers.clear();
+
+    registerAuth();
+    registerInventory(db);
+    registerSuppliers(db);
+
+    const callHandler = async <T = unknown>(channel: string, input: unknown): Promise<T> => {
+      const fn = ipcHandlers.get(channel);
+      if (!fn) throw new Error(`Handler for ${channel} not found`);
+      return (await fn({}, input)) as T;
+    };
+
+    // 1. Seed one real user through auth:setup
+    const setupRes = await callHandler<{ ok: boolean; data?: unknown }>("auth:setup", {
+      shopName: "My Shop",
+      username: "realuser",
+      password: "password123",
+      confirmPassword: "password123",
+    });
+    expect(setupRes.ok).toBe(true);
+
+    const initialUserRow = db.prepare("SELECT * FROM users WHERE username = 'realuser'").get() as {
+      id: number;
+      username: string;
+      password_hash: string;
+      created_at: string;
+    };
+    expect(initialUserRow).toBeDefined();
+
+    // Clear session so we can test unauthenticated login attempts
+    clearSession();
+    expect(getSession()).toBeNull();
+
+    const payloads = [
       "' OR '1'='1",
       "admin'--",
       "admin' /*",
       "'; DROP TABLE users; --",
-      "\" OR \"\"=\"",
+      '" OR ""="',
     ];
 
-    for (const payload of injectionUsernames) {
-      const user = usersRepo.findByUsername(db, payload);
-      expect(user).toBeNull();
+    for (const payload of payloads) {
+      // Test payload as USERNAME with a wrong password
+      resetAuthFailures();
+      const resUser = await callHandler<{ ok: boolean; error?: unknown }>("auth:login", {
+        username: payload,
+        password: "wrongpassword",
+      });
+      expect(resUser.ok).toBe(false);
+      expect(getSession()).toBeNull();
+
+      // Assert users table still exists with exactly one row and unchanged
+      expect(usersRepo.count(db)).toBe(1);
+      const userAfterUserPayload = db
+        .prepare("SELECT * FROM users WHERE username = 'realuser'")
+        .get() as typeof initialUserRow;
+      expect(userAfterUserPayload).toEqual(initialUserRow);
+
+      // Test payload as PASSWORD for the real username
+      resetAuthFailures();
+      const resPass = await callHandler<{ ok: boolean; error?: unknown }>("auth:login", {
+        username: "realuser",
+        password: payload,
+      });
+      expect(resPass.ok).toBe(false);
+      expect(getSession()).toBeNull();
+
+      // Assert users table still exists with exactly one row and unchanged
+      expect(usersRepo.count(db)).toBe(1);
+      const userAfterPassPayload = db
+        .prepare("SELECT * FROM users WHERE username = 'realuser'")
+        .get() as typeof initialUserRow;
+      expect(userAfterPassPayload).toEqual(initialUserRow);
     }
 
-    // Ensure users table is intact
-    expect(usersRepo.count(db)).toBe(0);
+    // Now seed some initial inventory and supplier data to verify no data changes during search
+    db.prepare(`
+      INSERT INTO suppliers (id, name, supplies, archived)
+      VALUES (1, 'Organic Farms', 'Fresh vegetables', 0)
+    `).run();
+
+    db.prepare(`
+      INSERT INTO products (id, name, code, category, supplier_id, cost, price, quantity, reorder_level, archived)
+      VALUES (1, 'Organic Apples', 'APPLE1', 'Fruits', 1, 1000, 1500, 20, 5, 0)
+    `).run();
+
+    const initialSuppliers = db.prepare("SELECT * FROM suppliers ORDER BY id ASC").all();
+    const initialProducts = db.prepare("SELECT * FROM products ORDER BY id ASC").all();
+    const initialUsers = db.prepare("SELECT * FROM users ORDER BY id ASC").all();
+
+    // Sign in to run protected search handlers
+    setSession({ userId: initialUserRow.id, username: initialUserRow.username });
+    expect(getSession()).not.toBeNull();
+
+    for (const payload of payloads) {
+      // Run payload through inventory:list search
+      const invRes = await callHandler<{ ok: boolean; data?: unknown }>("inventory:list", {
+        search: payload,
+      });
+      expect(invRes.ok).toBe(true);
+
+      // Run payload through suppliers:list search
+      const suppRes = await callHandler<{ ok: boolean; data?: unknown }>("suppliers:list", {
+        search: payload,
+      });
+      expect(suppRes.ok).toBe(true);
+
+      // Assert no data changes in suppliers, products, or users tables
+      expect(db.prepare("SELECT * FROM suppliers ORDER BY id ASC").all()).toEqual(initialSuppliers);
+      expect(db.prepare("SELECT * FROM products ORDER BY id ASC").all()).toEqual(initialProducts);
+      expect(db.prepare("SELECT * FROM users ORDER BY id ASC").all()).toEqual(initialUsers);
+    }
   });
 });
