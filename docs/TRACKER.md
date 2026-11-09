@@ -61,7 +61,7 @@ P2, P3 and P4 are independent of each other and may run in parallel. They must n
 
 ## P5 Dashboard and reports (DASH-1 to DASH-5, REP-1 to REP-7)
 - [ ] Aggregation functions in `domain` with tests (by day, by hour, week range, top products, valuation)
-- [ ] Dashboard screen
+- [x] Dashboard screen
 - [ ] Reports screen with four tabs, ranges, CSV export, print CSS
 
 ## P6 Documentation, polish, demo readiness
@@ -150,3 +150,10 @@ The workflow files and `electron-builder.yml` already exist. This phase proves t
   - Added registration guard test `GUARD: every IPC channel registers exactly once` in `src/main/ipc/guard.test.ts` testing uniqueness against throwing `ipcMain.handle`.
   - Added Escape key listeners to `ConfirmDialog` and `SuppliersPage` overlays (Record payment dialog and New invoice form) with focus restoration, tested under requirement IDs `SUP-3` and `SUP-4`.
   - Connected mock layer `invoices:create` in `src/renderer/dev/mock/suppliers.ts` to `applyMockInvoiceItems` in `src/renderer/dev/mock/inventory.ts` to increase product quantities and update product costs, tested in `src/renderer/dev/mock/suppliersMock.test.ts`.
+- 2026-11-09, phase P5 (Dashboard only, DASH-1 to DASH-5):
+  - Domain helpers in `src/main/domain/dashboard.ts` (`isDateToday`, `buildWeekBars`) and unit tests in `src/main/domain/dashboard.test.ts`.
+  - Repository queries in `src/main/db/repositories/dashboard.ts`: date sales & profit, active low-stock item counts, active supplier dues, Sunday-to-Saturday week bars with zero-fill, top 4 restock items ordered by quantity then name, and last 4 invoices by creation with PAID/DUE status.
+  - IPC handler in `src/main/ipc/dashboard.ts` registering `"dashboard:get"` with zod date validation and session authentication.
+  - Browser mock mode in `src/renderer/dev/mock/dashboard.ts` providing realistic demo dashboard figures.
+  - Screen implementation `DashboardPage.tsx` matching design references: date input with long format subtitle, "New sale" action linking to `/sales`, 4 dashed stat cards with currency/tone formatting, week bar chart with selected date bold label, restock list with red remaining counts linking to `/inventory?product={id}`, and recent supplier invoices table linking to `/suppliers?supplier={id}` with PAID/DUE stamps. Full loading, empty, and error states; 100% token-based CSS.
+  - Connected `/` route in `src/renderer/App.tsx`.
