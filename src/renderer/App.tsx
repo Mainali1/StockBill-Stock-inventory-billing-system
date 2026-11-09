@@ -2,15 +2,13 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import type { IpcChannels } from "@shared/ipc";
 import { call } from "./api";
-import { NavBar } from "./components/NavBar";
-import { PageFrame } from "./components/PageFrame";
-import { PageHeader } from "./components/PageHeader";
 import { SetupPage } from "./pages/SetupPage";
 import { LoginPage } from "./pages/LoginPage";
 import { InventoryPage } from "./pages/InventoryPage";
 import { SuppliersPage } from "./pages/SuppliersPage";
 import { SalesPage } from "./pages/SalesPage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { ReportsPage } from "./pages/ReportsPage";
 
 type AuthStatus = IpcChannels["auth:status"]["out"];
 
@@ -33,18 +31,6 @@ function Guard({
     return area === "login" ? <>{children}</> : <Navigate to="/login" replace />;
   }
   return area === "app" ? <>{children}</> : <Navigate to="/" replace />;
-}
-
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <>
-      <NavBar />
-      <PageFrame>
-        <PageHeader title={title} />
-        <p className="placeholder-note">Not built yet.</p>
-      </PageFrame>
-    </>
-  );
 }
 
 export function App() {
@@ -159,7 +145,7 @@ export function App() {
         path="/reports"
         element={
           <Guard status={status} area="app">
-            <PlaceholderPage title="Reports" />
+            <ReportsPage />
           </Guard>
         }
       />

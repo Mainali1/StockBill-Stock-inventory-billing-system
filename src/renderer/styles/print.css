@@ -7,4 +7,18 @@
   .no-print {
     display: none !important;
   }
+
+  .print-only {
+    display: block !important;
+  }
+
+  /* Black on white, charts retain fills */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+.print-only {
+  display: none;
 }
