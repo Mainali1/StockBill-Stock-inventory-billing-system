@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import type { IpcChannels } from "@shared/ipc";
 import { call } from "./api";
+import { SessionContext, type SessionControls } from "./session";
 import { SetupPage } from "./pages/SetupPage";
 import { LoginPage } from "./pages/LoginPage";
 import { InventoryPage } from "./pages/InventoryPage";
@@ -70,86 +71,96 @@ export function App() {
     return null;
   }
 
+  const sessionControls: SessionControls = {
+    markSignedOut: () => {
+      setStatus((current) =>
+        current === null ? current : { ...current, signedIn: false, username: null },
+      );
+    },
+  };
+
   return (
-    <Routes>
-      <Route
-        path="/setup"
-        element={
-          <Guard status={status} area="setup">
-            <SetupPage
-              version={version}
-              onSuccess={(data) => {
-                setStatus({
-                  hasUser: true,
-                  signedIn: true,
-                  username: data.username,
-                  shopName: data.shopName,
-                });
-              }}
-            />
-          </Guard>
-        }
-      />
-      <Route
-        path="/login"
-        element={
-          <Guard status={status} area="login">
-            <LoginPage
-              version={version}
-              shopName={status.shopName ?? ""}
-              onSuccess={(data) => {
-                setStatus({
-                  hasUser: true,
-                  signedIn: true,
-                  username: data.username,
-                  shopName: data.shopName,
-                });
-              }}
-            />
-          </Guard>
-        }
-      />
-      <Route
-        path="/"
-        element={
-          <Guard status={status} area="app">
-            <DashboardPage />
-          </Guard>
-        }
-      />
-      <Route
-        path="/sales"
-        element={
-          <Guard status={status} area="app">
-            <SalesPage />
-          </Guard>
-        }
-      />
-      <Route
-        path="/inventory"
-        element={
-          <Guard status={status} area="app">
-            <InventoryPage />
-          </Guard>
-        }
-      />
-      <Route
-        path="/suppliers"
-        element={
-          <Guard status={status} area="app">
-            <SuppliersPage />
-          </Guard>
-        }
-      />
-      <Route
-        path="/reports"
-        element={
-          <Guard status={status} area="app">
-            <ReportsPage />
-          </Guard>
-        }
-      />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <SessionContext.Provider value={sessionControls}>
+      <Routes>
+        <Route
+          path="/setup"
+          element={
+            <Guard status={status} area="setup">
+              <SetupPage
+                version={version}
+                onSuccess={(data) => {
+                  setStatus({
+                    hasUser: true,
+                    signedIn: true,
+                    username: data.username,
+                    shopName: data.shopName,
+                  });
+                }}
+              />
+            </Guard>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <Guard status={status} area="login">
+              <LoginPage
+                version={version}
+                shopName={status.shopName ?? ""}
+                onSuccess={(data) => {
+                  setStatus({
+                    hasUser: true,
+                    signedIn: true,
+                    username: data.username,
+                    shopName: data.shopName,
+                  });
+                }}
+              />
+            </Guard>
+          }
+        />
+        <Route
+          path="/"
+          element={
+            <Guard status={status} area="app">
+              <DashboardPage />
+            </Guard>
+          }
+        />
+        <Route
+          path="/sales"
+          element={
+            <Guard status={status} area="app">
+              <SalesPage />
+            </Guard>
+          }
+        />
+        <Route
+          path="/inventory"
+          element={
+            <Guard status={status} area="app">
+              <InventoryPage />
+            </Guard>
+          }
+        />
+        <Route
+          path="/suppliers"
+          element={
+            <Guard status={status} area="app">
+              <SuppliersPage />
+            </Guard>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <Guard status={status} area="app">
+              <ReportsPage />
+            </Guard>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </SessionContext.Provider>
   );
 }

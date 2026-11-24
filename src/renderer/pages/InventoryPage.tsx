@@ -84,19 +84,19 @@ export function InventoryPage(): React.JSX.Element {
     try {
       const cats = await call("inventory:categories", undefined);
       setCategories(cats);
-    } catch {
-      // ignore
+    } catch (err: unknown) {
+      toastError(err instanceof Error ? err.message : "Failed to load categories.");
     }
-  }, []);
+  }, [toastError]);
 
   const loadSuppliers = useCallback(async () => {
     try {
       const supps = await call("suppliers:listActive", undefined);
       setSuppliers(supps);
-    } catch {
-      // ignore
+    } catch (err: unknown) {
+      toastError(err instanceof Error ? err.message : "Failed to load suppliers.");
     }
-  }, []);
+  }, [toastError]);
 
   const loadProducts = useCallback(async () => {
     try {

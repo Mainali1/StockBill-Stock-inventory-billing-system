@@ -130,8 +130,8 @@ export function SuppliersPage(): React.JSX.Element {
     try {
       const prods = await call("suppliers:productOptions", undefined);
       setProductOptions(prods);
-    } catch {
-      // ignore
+    } catch (err: unknown) {
+      toastError(err instanceof Error ? err.message : "Failed to load products.");
     }
   };
 

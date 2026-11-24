@@ -1,4 +1,5 @@
 import { render } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import type { ApiResult } from "@shared/ipc/common";
@@ -49,5 +50,42 @@ describe("GUARD", () => {
     const dashboard = renderAt("/setup");
     expect(await dashboard.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
     dashboard.unmount();
+  });
+});
+
+describe("AUTH-3: sign out", () => {
+  it("AUTH-3: Sign out clears the session and shows the Login screen", async () => {
+    let signedIn = true;
+    window.api = {
+      invoke: vi.fn(async (channel: string): Promise<ApiResult<unknown>> => {
+        if (channel === "app:getVersion") {
+          return { ok: true, data: { version: "0.0.0" } };
+        }
+        if (channel === "auth:status") {
+          return {
+            ok: true,
+            data: {
+              hasUser: true,
+              signedIn,
+              username: signedIn ? "admin" : null,
+              shopName: "Demo Mart",
+            },
+          };
+        }
+        if (channel === "auth:logout") {
+          signedIn = false;
+          return { ok: true, data: undefined };
+        }
+        return { ok: false, error: { code: "RULE", message: "This feature is not built yet." } };
+      }),
+    } as unknown as Window["api"];
+
+    const view = renderAt("/");
+    expect(await view.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
+
+    await userEvent.click(view.getByRole("button", { name: "Sign out" }));
+
+    expect(await view.findByRole("heading", { name: "Login" })).toBeInTheDocument();
+    expect(view.queryByRole("heading", { name: "Dashboard" })).not.toBeInTheDocument();
   });
 });

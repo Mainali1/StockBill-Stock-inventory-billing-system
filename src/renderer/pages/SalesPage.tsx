@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { NavBar } from "../components/NavBar";
 import { PageFrame } from "../components/PageFrame";
 import { PageHeader } from "../components/PageHeader";
@@ -11,7 +11,12 @@ import { EmptyState } from "../components/EmptyState";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { call, ApiCallError } from "../api";
 import { useToast } from "../components/Toast";
-import { formatTable, formatCard, paisaToRupeesString, rupeesToPaisa } from "../../main/domain/money";
+import {
+  formatTable,
+  formatCard,
+  paisaToRupeesString,
+  rupeesToPaisa,
+} from "../../main/domain/money";
 import { nowDbDateTime, dbToInput, inputToDb, formatLong } from "../../main/domain/dates";
 import type { SalePickerProductDto, DaySalesDto, SaleRowDto } from "@shared/ipc/sales";
 
@@ -26,6 +31,7 @@ interface CartLine {
 
 export function SalesPage(): React.JSX.Element {
   const toast = useToast();
+  const { error: toastError } = toast;
 
   // Picker state
   const [products, setProducts] = useState<SalePickerProductDto[]>([]);
@@ -54,17 +60,40 @@ export function SalesPage(): React.JSX.Element {
   const [editError, setEditError] = useState<string | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
 
+  const editOpenerRef = useRef<HTMLElement | null>(null);
+
+  const closeEditDialog = useCallback(() => {
+    setEditingSale(null);
+    editOpenerRef.current?.focus();
+  }, []);
+
+  // Escape closes the edit dialog and returns focus to the button that opened it.
+  useEffect(() => {
+    if (!editingSale) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !savingEdit) {
+        e.preventDefault();
+        closeEditDialog();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [editingSale, savingEdit, closeEditDialog]);
+
   // Delete dialog state
   const [deletingSaleId, setDeletingSaleId] = useState<number | null>(null);
 
-  const loadDaySales = useCallback(async (date: string) => {
-    try {
-      const res = await call("sales:day", { date });
-      setDaySales(res);
-    } catch (err) {
-      console.error(err);
-    }
-  }, []);
+  const loadDaySales = useCallback(
+    async (date: string) => {
+      try {
+        const res = await call("sales:day", { date });
+        setDaySales(res);
+      } catch (err) {
+        toastError(err instanceof Error ? err.message : "Failed to load this day's sales.");
+      }
+    },
+    [toastError],
+  );
 
   useEffect(() => {
     if (datePart) {
@@ -81,9 +110,9 @@ export function SalesPage(): React.JSX.Element {
       setProducts(res.products);
       setCategories(res.categories);
     } catch (err) {
-      console.error(err);
+      toastError(err instanceof Error ? err.message : "Failed to load products.");
     }
-  }, [search, selectedCategory]);
+  }, [search, selectedCategory, toastError]);
 
   useEffect(() => {
     loadProducts();
@@ -108,7 +137,7 @@ export function SalesPage(): React.JSX.Element {
       if (existing) {
         if (existing.quantity >= product.quantity) return prev;
         return prev.map((l) =>
-          l.productId === product.id ? { ...l, quantity: l.quantity + 1 } : l
+          l.productId === product.id ? { ...l, quantity: l.quantity + 1 } : l,
         );
       }
       return [
@@ -132,7 +161,7 @@ export function SalesPage(): React.JSX.Element {
         if (l.productId !== productId) return l;
         const validQty = Math.max(1, Math.min(l.maxStock, qty));
         return { ...l, quantity: validQty };
-      })
+      }),
     );
   };
 
@@ -146,7 +175,7 @@ export function SalesPage(): React.JSX.Element {
         } catch {
           return { ...l, unitPriceRupees: val };
         }
-      })
+      }),
     );
   };
 
@@ -205,6 +234,7 @@ export function SalesPage(): React.JSX.Element {
   }, [daySales]);
 
   const handleOpenEdit = (r: SaleRowDto) => {
+    editOpenerRef.current = document.activeElement as HTMLElement | null;
     setEditingSale(r);
     setEditQty(r.quantity);
     setEditPriceRupees(paisaToRupeesString(r.unitPrice));
@@ -336,7 +366,13 @@ export function SalesPage(): React.JSX.Element {
         <div>
           <div style={{ fontWeight: 600 }}>{p.name}</div>
           {p.code && (
-            <div style={{ fontSize: "var(--text-xs)", color: "var(--ink-soft)", fontFamily: "var(--font-mono)" }}>
+            <div
+              style={{
+                fontSize: "var(--text-xs)",
+                color: "var(--ink-soft)",
+                fontFamily: "var(--font-mono)",
+              }}
+            >
               {p.code}
             </div>
           )}
@@ -386,7 +422,14 @@ export function SalesPage(): React.JSX.Element {
       <PageFrame>
         <PageHeader title="Sales" subtitle="Record what was sold, and when" />
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "var(--space-6)", marginBottom: "var(--space-8)" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1.2fr 1fr",
+            gap: "var(--space-6)",
+            marginBottom: "var(--space-8)",
+          }}
+        >
           {/* Left column: Product picker */}
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
             <TextInput
@@ -395,11 +438,15 @@ export function SalesPage(): React.JSX.Element {
               onChange={(e) => setSearch(e.target.value)}
             />
 
-            <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", alignItems: "center" }}>
-              <Chip
-                selected={selectedCategory === null}
-                onClick={() => setSelectedCategory(null)}
-              >
+            <div
+              style={{
+                display: "flex",
+                gap: "var(--space-2)",
+                flexWrap: "wrap",
+                alignItems: "center",
+              }}
+            >
+              <Chip selected={selectedCategory === null} onClick={() => setSelectedCategory(null)}>
                 All
               </Chip>
               {categories.map((cat) => (
@@ -413,7 +460,12 @@ export function SalesPage(): React.JSX.Element {
               ))}
             </div>
 
-            <div style={{ border: "var(--border-thin) solid var(--ink)", background: "var(--paper-hi)" }}>
+            <div
+              style={{
+                border: "var(--border-thin) solid var(--ink)",
+                background: "var(--paper-hi)",
+              }}
+            >
               <DataTable
                 columns={productColumns}
                 rows={products}
@@ -463,7 +515,14 @@ export function SalesPage(): React.JSX.Element {
               </div>
 
               {/* Line items */}
-              <div style={{ minHeight: "160px", display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+              <div
+                style={{
+                  minHeight: "160px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "var(--space-2)",
+                }}
+              >
                 {lines.length === 0 ? (
                   <div
                     style={{
@@ -493,7 +552,9 @@ export function SalesPage(): React.JSX.Element {
                           borderBottom: "var(--border-thin) solid var(--rule)",
                         }}
                       >
-                        <span style={{ fontWeight: 600, fontSize: "var(--text-sm)" }}>{l.productName}</span>
+                        <span style={{ fontWeight: 600, fontSize: "var(--text-sm)" }}>
+                          {l.productName}
+                        </span>
 
                         {/* Qty minus / input / plus */}
                         <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
@@ -516,7 +577,9 @@ export function SalesPage(): React.JSX.Element {
                             min="1"
                             max={l.maxStock}
                             value={l.quantity}
-                            onChange={(e) => handleQuantityChange(l.productId, parseInt(e.target.value, 10) || 1)}
+                            onChange={(e) =>
+                              handleQuantityChange(l.productId, parseInt(e.target.value, 10) || 1)
+                            }
                             style={{
                               width: "40px",
                               height: "28px",
@@ -623,7 +686,13 @@ export function SalesPage(): React.JSX.Element {
                 }}
               >
                 <div>
-                  <div style={{ fontSize: "var(--text-xs)", color: "var(--ink-soft)", textTransform: "uppercase" }}>
+                  <div
+                    style={{
+                      fontSize: "var(--text-xs)",
+                      color: "var(--ink-soft)",
+                      textTransform: "uppercase",
+                    }}
+                  >
                     Total
                   </div>
                   <div
@@ -669,28 +738,28 @@ export function SalesPage(): React.JSX.Element {
               paddingBottom: "var(--space-3)",
             }}
           >
-            <h2 style={{ fontSize: "var(--text-xl)", margin: 0, fontFamily: "var(--font-display)" }}>
+            <h2
+              style={{ fontSize: "var(--text-xl)", margin: 0, fontFamily: "var(--font-display)" }}
+            >
               Sales on {formatLong(datePart)}
             </h2>
           </div>
 
           {/* Three stat cards */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--space-4)" }}>
-            <StatCard
-              label="Total sales"
-              value={formatCard(daySales?.total ?? 0)}
-              tone="default"
-            />
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "var(--space-4)",
+            }}
+          >
+            <StatCard label="Total sales" value={formatCard(daySales?.total ?? 0)} tone="default" />
             <StatCard
               label="Profit"
               value={formatCard(daySales?.profit ?? 0)}
               tone={(daySales?.profit ?? 0) >= 0 ? "good" : "bad"}
             />
-            <StatCard
-              label="Sale rows"
-              value={daySales?.count ?? 0}
-              tone="default"
-            />
+            <StatCard label="Sale rows" value={daySales?.count ?? 0} tone="default" />
           </div>
 
           {/* By hour bar chart */}
@@ -706,7 +775,13 @@ export function SalesPage(): React.JSX.Element {
             >
               By hour
             </span>
-            <div style={{ background: "var(--paper)", padding: "var(--space-4)", border: "var(--border-thin) solid var(--rule)" }}>
+            <div
+              style={{
+                background: "var(--paper)",
+                padding: "var(--space-4)",
+                border: "var(--border-thin) solid var(--rule)",
+              }}
+            >
               <BarChart
                 groups={hourlyChartGroups}
                 height={120}
@@ -723,11 +798,7 @@ export function SalesPage(): React.JSX.Element {
                 hint="Pick products above and save to record some."
               />
             ) : (
-              <DataTable
-                columns={daySaleColumns}
-                rows={daySales.rows}
-                rowKey={(r) => r.id}
-              />
+              <DataTable columns={daySaleColumns} rows={daySales.rows} rowKey={(r) => r.id} />
             )}
           </div>
         </div>
@@ -751,7 +822,11 @@ export function SalesPage(): React.JSX.Element {
               zIndex: 999,
             }}
           >
-            <div
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void handleSaveEdit();
+              }}
               style={{
                 background: "var(--paper-hi)",
                 border: "var(--border-thick) solid var(--ink)",
@@ -794,7 +869,12 @@ export function SalesPage(): React.JSX.Element {
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
                 <label
                   htmlFor="edit-sale-qty"
-                  style={{ fontSize: "var(--text-xs)", textTransform: "uppercase", fontWeight: 600, color: "var(--ink-soft)" }}
+                  style={{
+                    fontSize: "var(--text-xs)",
+                    textTransform: "uppercase",
+                    fontWeight: 600,
+                    color: "var(--ink-soft)",
+                  }}
                 >
                   Quantity
                 </label>
@@ -810,7 +890,12 @@ export function SalesPage(): React.JSX.Element {
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
                 <label
                   htmlFor="edit-sale-price"
-                  style={{ fontSize: "var(--text-xs)", textTransform: "uppercase", fontWeight: 600, color: "var(--ink-soft)" }}
+                  style={{
+                    fontSize: "var(--text-xs)",
+                    textTransform: "uppercase",
+                    fontWeight: 600,
+                    color: "var(--ink-soft)",
+                  }}
                 >
                   Unit price (Rs.)
                 </label>
@@ -825,7 +910,12 @@ export function SalesPage(): React.JSX.Element {
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
                 <label
                   htmlFor="edit-sale-when"
-                  style={{ fontSize: "var(--text-xs)", textTransform: "uppercase", fontWeight: 600, color: "var(--ink-soft)" }}
+                  style={{
+                    fontSize: "var(--text-xs)",
+                    textTransform: "uppercase",
+                    fontWeight: 600,
+                    color: "var(--ink-soft)",
+                  }}
                 >
                   When
                 </label>
@@ -837,15 +927,22 @@ export function SalesPage(): React.JSX.Element {
                 />
               </div>
 
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--space-2)", marginTop: "var(--space-2)" }}>
-                <Button variant="secondary" onClick={() => setEditingSale(null)}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "var(--space-2)",
+                  marginTop: "var(--space-2)",
+                }}
+              >
+                <Button type="button" variant="secondary" onClick={closeEditDialog}>
                   Cancel
                 </Button>
-                <Button variant="primary" disabled={savingEdit} onClick={handleSaveEdit}>
+                <Button type="submit" variant="primary" disabled={savingEdit}>
                   Save changes
                 </Button>
               </div>
-            </div>
+            </form>
           </div>
         )}
 

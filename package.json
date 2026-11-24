@@ -21,7 +21,8 @@
     "rebuild:node": "npm rebuild better-sqlite3",
     "rebuild:electron": "electron-builder install-app-deps",
     "seed:demo": "npm run rebuild:node && tsx scripts/seed-demo.ts",
-    "schema:dump": "tsx scripts/dump-schema.ts"
+    "schema:dump": "tsx scripts/dump-schema.ts",
+    "trace": "tsx scripts/trace.ts"
   },
   "dependencies": {
     "@fontsource/courier-prime": "^5.1.0",

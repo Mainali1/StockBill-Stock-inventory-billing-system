@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { call } from "../api";
+import { useSession } from "../session";
 
 const LINKS = [
   { to: "/", label: "Dashboard", end: true },
@@ -13,6 +14,7 @@ const LINKS = [
 /** Top navigation bar: wordmark, section links, username and Sign out. */
 export function NavBar() {
   const navigate = useNavigate();
+  const session = useSession();
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
@@ -37,6 +39,10 @@ export function NavBar() {
     try {
       await call("auth:logout", undefined);
     } finally {
+      if (session) {
+        // The app shell owns the signed-in flag; the guard then redirects to Login.
+        session.markSignedOut();
+      }
       navigate("/login");
     }
   }

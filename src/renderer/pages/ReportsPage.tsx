@@ -36,6 +36,7 @@ export function ReportsPage(): React.JSX.Element {
   const [shopName, setShopName] = useState<string>("Demo Mart");
 
   const toast = useToast();
+  const { error: toastError } = toast;
 
   useEffect(() => {
     call("auth:status", undefined)
@@ -65,7 +66,7 @@ export function ReportsPage(): React.JSX.Element {
           if (active) {
             const msg = err?.message || "Failed to load report.";
             setError(msg);
-            toast.error(msg);
+            toastError(msg);
             setLoading(false);
           }
         });
@@ -73,7 +74,7 @@ export function ReportsPage(): React.JSX.Element {
         active = false;
       };
     },
-    [toast]
+    [toastError]
   );
 
   useEffect(() => {

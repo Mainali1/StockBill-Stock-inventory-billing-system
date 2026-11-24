@@ -36,18 +36,20 @@ function renderSalesPage() {
       <ToastProvider>
         <SalesPage />
       </ToastProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
 describe("SalesPage component tests", () => {
   beforeEach(() => {
-    vi.spyOn(api, "call").mockImplementation(<C extends ChannelName>(channel: C): Promise<IpcChannels[C]["out"]> => {
-      if (channel === "sales:picker") {
-        return Promise.resolve(mockPickerData as unknown as IpcChannels[C]["out"]);
-      }
-      return Promise.resolve(undefined as unknown as IpcChannels[C]["out"]);
-    });
+    vi.spyOn(api, "call").mockImplementation(
+      <C extends ChannelName>(channel: C): Promise<IpcChannels[C]["out"]> => {
+        if (channel === "sales:picker") {
+          return Promise.resolve(mockPickerData as unknown as IpcChannels[C]["out"]);
+        }
+        return Promise.resolve(undefined as unknown as IpcChannels[C]["out"]);
+      },
+    );
   });
 
   it("SAL-1: Add button disabled at zero stock", async () => {
@@ -103,15 +105,17 @@ describe("SalesPage component tests", () => {
     });
 
     const { ApiCallError } = await import("../api");
-    vi.spyOn(api, "call").mockImplementation(<C extends ChannelName>(channel: C): Promise<IpcChannels[C]["out"]> => {
-      if (channel === "sales:save") {
-        return Promise.reject(new ApiCallError("RULE", "Only 24 of Basmati Rice 5kg in stock."));
-      }
-      if (channel === "sales:picker") {
-        return Promise.resolve(mockPickerData as unknown as IpcChannels[C]["out"]);
-      }
-      return Promise.resolve(undefined as unknown as IpcChannels[C]["out"]);
-    });
+    vi.spyOn(api, "call").mockImplementation(
+      <C extends ChannelName>(channel: C): Promise<IpcChannels[C]["out"]> => {
+        if (channel === "sales:save") {
+          return Promise.reject(new ApiCallError("RULE", "Only 24 of Basmati Rice 5kg in stock."));
+        }
+        if (channel === "sales:picker") {
+          return Promise.resolve(mockPickerData as unknown as IpcChannels[C]["out"]);
+        }
+        return Promise.resolve(undefined as unknown as IpcChannels[C]["out"]);
+      },
+    );
 
     const saveBtn = screen.getByRole("button", { name: "Save sales" });
     await user.click(saveBtn);
@@ -143,17 +147,21 @@ describe("SalesPage component tests", () => {
       rows: [],
     };
 
-    vi.spyOn(api, "call").mockImplementation(<C extends ChannelName>(channel: C, payload?: unknown): Promise<IpcChannels[C]["out"]> => {
-      if (channel === "sales:day") {
-        const p = payload as { date: string };
-        if (p.date === "2026-11-03") return Promise.resolve(mockDaySales1 as unknown as IpcChannels[C]["out"]);
-        if (p.date === "2026-11-04") return Promise.resolve(mockDaySales2 as unknown as IpcChannels[C]["out"]);
-      }
-      if (channel === "sales:picker") {
-        return Promise.resolve(mockPickerData as unknown as IpcChannels[C]["out"]);
-      }
-      return Promise.resolve(undefined as unknown as IpcChannels[C]["out"]);
-    });
+    vi.spyOn(api, "call").mockImplementation(
+      <C extends ChannelName>(channel: C, payload?: unknown): Promise<IpcChannels[C]["out"]> => {
+        if (channel === "sales:day") {
+          const p = payload as { date: string };
+          if (p.date === "2026-11-03")
+            return Promise.resolve(mockDaySales1 as unknown as IpcChannels[C]["out"]);
+          if (p.date === "2026-11-04")
+            return Promise.resolve(mockDaySales2 as unknown as IpcChannels[C]["out"]);
+        }
+        if (channel === "sales:picker") {
+          return Promise.resolve(mockPickerData as unknown as IpcChannels[C]["out"]);
+        }
+        return Promise.resolve(undefined as unknown as IpcChannels[C]["out"]);
+      },
+    );
 
     renderSalesPage();
 
@@ -186,40 +194,42 @@ describe("SalesPage component tests", () => {
       rows: [],
     };
 
-    vi.spyOn(api, "call").mockImplementation(<C extends ChannelName>(channel: C, _payload?: unknown): Promise<IpcChannels[C]["out"]> => {
-      if (channel === "sales:day") {
-        return Promise.resolve(currentDaySales as unknown as IpcChannels[C]["out"]);
-      }
-      if (channel === "sales:save") {
-        const hourly = new Array(24).fill(0);
-        hourly[10] = 115000;
-        currentDaySales = {
-          date: "2026-11-03",
-          total: 115000,
-          profit: 17000,
-          count: 1,
-          hourly,
-          rows: [
-            {
-              id: 1,
-              soldAt: "2026-11-03 10:00",
-              productId: 1,
-              productName: "Basmati Rice 5kg",
-              quantity: 1,
-              unitPrice: 115000,
-              unitCost: 98000,
-              lineTotal: 115000,
-              profit: 17000,
-            },
-          ],
-        };
-        return Promise.resolve(currentDaySales as unknown as IpcChannels[C]["out"]);
-      }
-      if (channel === "sales:picker") {
-        return Promise.resolve(mockPickerData as unknown as IpcChannels[C]["out"]);
-      }
-      return Promise.resolve(undefined as unknown as IpcChannels[C]["out"]);
-    });
+    vi.spyOn(api, "call").mockImplementation(
+      <C extends ChannelName>(channel: C, _payload?: unknown): Promise<IpcChannels[C]["out"]> => {
+        if (channel === "sales:day") {
+          return Promise.resolve(currentDaySales as unknown as IpcChannels[C]["out"]);
+        }
+        if (channel === "sales:save") {
+          const hourly = new Array(24).fill(0);
+          hourly[10] = 115000;
+          currentDaySales = {
+            date: "2026-11-03",
+            total: 115000,
+            profit: 17000,
+            count: 1,
+            hourly,
+            rows: [
+              {
+                id: 1,
+                soldAt: "2026-11-03 10:00",
+                productId: 1,
+                productName: "Basmati Rice 5kg",
+                quantity: 1,
+                unitPrice: 115000,
+                unitCost: 98000,
+                lineTotal: 115000,
+                profit: 17000,
+              },
+            ],
+          };
+          return Promise.resolve(currentDaySales as unknown as IpcChannels[C]["out"]);
+        }
+        if (channel === "sales:picker") {
+          return Promise.resolve(mockPickerData as unknown as IpcChannels[C]["out"]);
+        }
+        return Promise.resolve(undefined as unknown as IpcChannels[C]["out"]);
+      },
+    );
 
     renderSalesPage();
 
@@ -242,6 +252,103 @@ describe("SalesPage component tests", () => {
       expect(screen.getByText("Rs. 1,150")).toBeInTheDocument();
       expect(screen.queryByText("No sales on this day")).not.toBeInTheDocument();
       expect(screen.getByText("10:00")).toBeInTheDocument();
+    });
+  });
+  it("SAL-4: Escape closes the edit dialog and focus returns to the Edit button", async () => {
+    const user = userEvent.setup();
+    const day: IpcChannels["sales:day"]["out"] = {
+      date: "2026-11-03",
+      total: 115000,
+      profit: 17000,
+      count: 1,
+      hourly: new Array(24).fill(0),
+      rows: [
+        {
+          id: 1,
+          soldAt: "2026-11-03 10:00",
+          productId: 1,
+          productName: "Basmati Rice 5kg",
+          quantity: 1,
+          unitPrice: 115000,
+          unitCost: 98000,
+          lineTotal: 115000,
+          profit: 17000,
+        },
+      ],
+    };
+
+    vi.spyOn(api, "call").mockImplementation(
+      <C extends ChannelName>(channel: C): Promise<IpcChannels[C]["out"]> => {
+        if (channel === "sales:day") {
+          return Promise.resolve(day as unknown as IpcChannels[C]["out"]);
+        }
+        if (channel === "sales:picker") {
+          return Promise.resolve(mockPickerData as unknown as IpcChannels[C]["out"]);
+        }
+        return Promise.resolve(undefined as unknown as IpcChannels[C]["out"]);
+      },
+    );
+
+    renderSalesPage();
+
+    const editButton = await screen.findByRole("button", { name: "Edit" });
+    await user.click(editButton);
+    expect(screen.getByRole("dialog", { name: /Edit sale/ })).toBeInTheDocument();
+
+    await user.keyboard("{Escape}");
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog", { name: /Edit sale/ })).not.toBeInTheDocument();
+    });
+    expect(editButton).toHaveFocus();
+  });
+  it("SAL-4: pressing Enter in the edit dialog saves the change", async () => {
+    const user = userEvent.setup();
+    const day: IpcChannels["sales:day"]["out"] = {
+      date: "2026-11-03",
+      total: 115000,
+      profit: 17000,
+      count: 1,
+      hourly: new Array(24).fill(0),
+      rows: [
+        {
+          id: 1,
+          soldAt: "2026-11-03 10:00",
+          productId: 1,
+          productName: "Basmati Rice 5kg",
+          quantity: 1,
+          unitPrice: 115000,
+          unitCost: 98000,
+          lineTotal: 115000,
+          profit: 17000,
+        },
+      ],
+    };
+    const calls: string[] = [];
+
+    vi.spyOn(api, "call").mockImplementation(
+      <C extends ChannelName>(channel: C): Promise<IpcChannels[C]["out"]> => {
+        calls.push(channel);
+        if (channel === "sales:day") {
+          return Promise.resolve(day as unknown as IpcChannels[C]["out"]);
+        }
+        if (channel === "sales:picker") {
+          return Promise.resolve(mockPickerData as unknown as IpcChannels[C]["out"]);
+        }
+        return Promise.resolve(undefined as unknown as IpcChannels[C]["out"]);
+      },
+    );
+
+    renderSalesPage();
+
+    await user.click(await screen.findByRole("button", { name: "Edit" }));
+    const dialog = screen.getByRole("dialog", { name: /Edit sale/ });
+    const quantityField = dialog.querySelector("input") as HTMLInputElement;
+    await user.click(quantityField);
+    await user.keyboard("{Enter}");
+
+    await waitFor(() => {
+      expect(calls).toContain("sales:update");
     });
   });
 });

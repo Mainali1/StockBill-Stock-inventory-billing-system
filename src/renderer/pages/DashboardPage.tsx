@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { DashboardDto, WeekBarDto } from "@shared/ipc/reports";
-import { call } from "../api";
+import { ApiCallError, call } from "../api";
 import { NavBar } from "../components/NavBar";
 import { PageFrame } from "../components/PageFrame";
 import { PageHeader } from "../components/PageHeader";
@@ -25,8 +25,12 @@ export function DashboardPage(): React.JSX.Element {
     try {
       const res = await call("dashboard:get", { date });
       setData(res);
-    } catch {
-      setError("Failed to load dashboard data. Please try again.");
+    } catch (err: unknown) {
+      setError(
+        err instanceof ApiCallError
+          ? err.message
+          : "Failed to load dashboard data. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -36,9 +40,7 @@ export function DashboardPage(): React.JSX.Element {
     loadDashboard(selectedDate);
   }, [selectedDate, loadDashboard]);
 
-  const maxWeekSales = data?.week
-    ? Math.max(0, ...data.week.map((w: WeekBarDto) => w.sales))
-    : 0;
+  const maxWeekSales = data?.week ? Math.max(0, ...data.week.map((w: WeekBarDto) => w.sales)) : 0;
 
   return (
     <>
@@ -123,16 +125,8 @@ export function DashboardPage(): React.JSX.Element {
                 value={formatCard(data.profit)}
                 tone={data.profit >= 0 ? "good" : "bad"}
               />
-              <StatCard
-                label="LOW-STOCK ITEMS"
-                value={data.lowStockCount}
-                tone="bad"
-              />
-              <StatCard
-                label="SUPPLIER DUES"
-                value={formatCard(data.supplierDue)}
-                tone="default"
-              />
+              <StatCard label="LOW-STOCK ITEMS" value={data.lowStockCount} tone="bad" />
+              <StatCard label="SUPPLIER DUES" value={formatCard(data.supplierDue)} tone="default" />
             </div>
 
             {/* Middle Section: Sales This Week & Needs Restock */}
@@ -171,8 +165,7 @@ export function DashboardPage(): React.JSX.Element {
                 >
                   {data.week.map((day: WeekBarDto) => {
                     const isSelected = day.date === data.date;
-                    const pct =
-                      maxWeekSales > 0 ? (day.sales / maxWeekSales) * 100 : 0;
+                    const pct = maxWeekSales > 0 ? (day.sales / maxWeekSales) * 100 : 0;
                     const isZero = day.sales === 0;
                     const titleText = `${day.label}: ${formatCard(day.sales)}`;
 
@@ -229,12 +222,8 @@ export function DashboardPage(): React.JSX.Element {
                         <span
                           style={{
                             fontSize: "var(--text-xs)",
-                            fontFamily: isSelected
-                              ? "var(--font-body)"
-                              : "var(--font-mono)",
-                            color: isSelected
-                              ? "var(--ink)"
-                              : "var(--ink-soft)",
+                            fontFamily: isSelected ? "var(--font-body)" : "var(--font-mono)",
+                            color: isSelected ? "var(--ink)" : "var(--ink-soft)",
                             fontWeight: isSelected ? 700 : 400,
                             marginTop: "var(--space-1)",
                           }}
@@ -396,9 +385,7 @@ export function DashboardPage(): React.JSX.Element {
                       {data.recentInvoices.map((inv) => (
                         <tr
                           key={inv.id}
-                          onClick={() =>
-                            navigate(`/suppliers?supplier=${inv.supplierId}`)
-                          }
+                          onClick={() => navigate(`/suppliers?supplier=${inv.supplierId}`)}
                           style={{
                             borderBottom: "var(--border-thin) solid var(--rule)",
                             cursor: "pointer",
@@ -439,11 +426,7 @@ export function DashboardPage(): React.JSX.Element {
                               textAlign: "right",
                             }}
                           >
-                            <Stamp
-                              kind={
-                                inv.status === "PAID" ? "paid" : "due"
-                              }
-                            />
+                            <Stamp kind={inv.status === "PAID" ? "paid" : "due"} />
                           </td>
                         </tr>
                       ))}
